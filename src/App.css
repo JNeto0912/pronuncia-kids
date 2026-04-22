@@ -58,20 +58,12 @@
   z-index: 1;
 }
 
-.home-mascot-circle::after {
-  content: "";
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.2) 0%,
-    transparent 70%
-  );
-  z-index: -1;
+/* NOVO: Estilo para a imagem do mascote */
+.home-mascot-image {
+  width: 80px; /* Ajuste conforme o tamanho desejado */
+  height: 80px; /* Ajuste conforme o tamanho desejado */
+  object-fit: contain; /* Garante que a imagem caiba sem cortar */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Mantém o efeito de sombra */
 }
 
 .home-mascot-emoji {
@@ -137,12 +129,12 @@
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: 999px;
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.2) 0%,
     transparent 100%
   );
-  border-radius: 999px;
 }
 
 .home-btn-start {
@@ -226,6 +218,134 @@
   backdrop-filter: blur(5px);
   margin: 0;
 }
+
+/* NOVO: Estilos para o toggle do Modo Fono na HomeScreen */
+.fono-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: linear-gradient(180deg, #c0c0c0, #808080); /* Cinza do botão */
+  border-radius: 999px;
+  padding: 0.8rem 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  margin-top: 1.5rem;
+  z-index: 1;
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.fono-toggle-icon {
+  font-size: 1.5rem;
+}
+
+.fono-toggle-label {
+  flex-grow: 1;
+  text-align: left;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4cd964; /* Verde quando ON */
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4cd964;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(22px);
+  -ms-transform: translateX(22px);
+  transform: translateX(22px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 28px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.fono-toggle-status {
+  font-size: 0.9rem;
+  font-weight: 800;
+  width: 30px; /* Para alinhar ON/OFF */
+  text-align: center;
+}
+
+/* NOVO: Elementos decorativos na HomeScreen */
+.decorative-elements {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* Para não interferir com cliques */
+  z-index: 0;
+}
+
+.decorative-elements span {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.6;
+  animation: float 10s infinite ease-in-out alternate;
+}
+
+.note-1 { top: 15%; left: 5%; transform: rotate(-20deg); animation-delay: 0s; }
+.note-2 { top: 25%; right: 8%; transform: rotate(30deg); animation-delay: 2s; }
+.letter-a { top: 40%; left: 12%; font-size: 2.5rem; color: #ff6b3d; animation-delay: 1s; }
+.letter-b { top: 55%; right: 10%; font-size: 2.2rem; color: #2bb2ff; animation-delay: 3s; }
+.letter-c { top: 30%; left: 20%; font-size: 2.8rem; color: #ff9f0a; animation-delay: 0.5s; }
+.star-1 { top: 10%; right: 20%; font-size: 1.8rem; color: #ffd700; animation-delay: 1.5s; }
+.star-2 { top: 60%; left: 5%; font-size: 1.5rem; color: #ffe082; animation-delay: 2.5s; }
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
 
 /* -------- CATEGORIAS -------- */
 
@@ -492,10 +612,13 @@
   height: 58px;
   border-radius: 50%;
   border: none;
-  background: radial-gradient(circle at 30% 20%, #ffffff, #3dabff);
-  box-shadow: 0 8px 16px rgba(0, 120, 255, 0.3);
-  font-size: 1.8rem;
+  background: radial-gradient(circle at 30% 20%, #a7f3d0, #34d399);
+  box-shadow: 0 8px 18px rgba(52, 211, 153, 0.4);
   cursor: pointer;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.1s ease;
 }
 
@@ -504,120 +627,109 @@
 }
 
 .mic-button {
-  width: 90px;
-  height: 90px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
   border: none;
-  background: radial-gradient(circle at 30% 20%, #ffffff, #02cbbd);
-  box-shadow: 0 12px 26px rgba(0, 180, 160, 0.4);
-  font-size: 2.1rem;
+  background: radial-gradient(circle at 30% 20%, #ffb74d, #ffa726);
+  box-shadow: 0 10px 22px rgba(255, 167, 38, 0.4);
   cursor: pointer;
-  transition: transform 0.1s ease, filter 0.15s ease;
+  font-size: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
 }
 
-.mic-button:hover:not(:disabled) {
-  transform: translateY(-3px);
-  filter: brightness(1.05);
-}
-
-.mic-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.mic-button:hover {
+  transform: translateY(-2px);
 }
 
 .mic-button-listening {
-  animation: mic-pulse 1s infinite;
+  background: radial-gradient(circle at 30% 20%, #ff5252, #e53935);
+  box-shadow: 0 10px 22px rgba(229, 57, 53, 0.4);
+  animation: pulse 1.5s infinite;
 }
 
-@keyframes mic-pulse {
+@keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 12px 26px rgba(0, 180, 160, 0.4);
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.7);
   }
-  50% {
-    transform: scale(1.07);
-    box-shadow: 0 18px 34px rgba(0, 180, 160, 0.55);
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 15px rgba(229, 57, 53, 0);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 12px 26px rgba(0, 180, 160, 0.4);
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
   }
 }
 
 .training-result-box {
-  background: #f7f8ff;
-  border-radius: 18px;
-  padding: 0.9rem;
-  margin-top: 0.4rem;
-  font-size: 0.95rem;
+  background: #f0f8ff;
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 1.2rem;
+  border: 2px solid #d0eaff;
+  text-align: left;
 }
 
 .training-result-line {
-  margin: 0.15rem 0;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.training-result-line strong {
+  color: #333;
 }
 
 .training-feedback {
-  margin-top: 0.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #3a3a3a;
-}
-
-.fono-box {
-  margin-top: 0.75rem;
-  padding: 0.8rem;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 2px solid #d0d4ff;
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-.fono-box p {
-  margin: 0.2rem 0;
+  color: #2e7d32;
+  margin-top: 0.8rem;
 }
 
 .training-bottom-buttons {
   display: flex;
   justify-content: space-between;
-  gap: 0.6rem;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .nav-pill {
-  flex: 1;
-  border-radius: 999px;
   border: none;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 999px;
+  background: #ffe0b2;
   font-weight: 700;
   cursor: pointer;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  color: #8d6e63;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.1s ease;
 }
 
 .nav-pill:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .nav-pill-left {
-  background: linear-gradient(180deg, #4a90ff, #3575e8);
+  background: linear-gradient(180deg, #bbdefb, #90caf9);
+  color: #1976d2;
 }
 
 .nav-pill-right {
-  background: linear-gradient(180deg, #34c759, #0fb26b);
+  background: linear-gradient(180deg, #c8e6c9, #a5d6a7);
+  color: #388e3c;
 }
 
-/* -------- POPUP "MUITO BEM!" -------- */
+/* -------- Congrats Overlay -------- */
 
 .congrats-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(
-    circle at top,
-    rgba(255, 255, 255, 0.95),
-    rgba(255, 220, 250, 0.92)
-  );
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -718,4 +830,148 @@
 
 .congrats-button:hover {
   transform: translateY(-2px);
+}
+
+/* -------- FeedbackModal (para erros ou fono) -------- */
+
+.feedback-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998; /* Um pouco abaixo do congrats-overlay */
+  animation: fadeIn 0.25s ease;
+}
+
+.feedback-modal-card {
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 1.6rem 1.4rem 1.8rem;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+  border: 4px solid #ccc; /* Borda padrão */
+  position: relative;
+  overflow: hidden;
+}
+
+.feedback-modal-card.correct {
+  border-color: #a5d6a7; /* Verde claro para acerto */
+}
+
+.feedback-modal-card.incorrect {
+  border-color: #ffccbc; /* Vermelho claro para erro */
+}
+
+.feedback-modal-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.feedback-modal-title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #333;
+  margin: 0;
+}
+
+.feedback-modal-title.correct {
+  color: #4caf50; /* Verde */
+  text-shadow: 0 3px 0 #2e7d32;
+}
+
+.feedback-modal-title.incorrect {
+  color: #f44336; /* Vermelho */
+  text-shadow: 0 3px 0 #d32f2f;
+}
+
+.feedback-modal-word {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #333;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.feedback-modal-spoken {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.feedback-modal-sub {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 1.2rem;
+}
+
+.feedback-modal-button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.85rem 1.8rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(180deg, #3a8dff, #2e7d32); /* Azul padrão */
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s ease;
+}
+
+.feedback-modal-button:hover {
+  transform: translateY(-2px);
+}
+
+/* Estilo para o fono-box dentro do modal */
+.fono-box-modal {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 0.9em;
+  color: #493702;
+}
+
+.fono-box-modal h4 {
+  color: #856404;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.fono-box-modal p {
+  margin-bottom: 5px;
+  line-height: 1.3;
+}
+
+.fono-box-modal strong {
+  color: #333;
+}
+
+/* Estilo para o botão do Modo Fono na TrainingScreen */
+.icon-button-active {
+  background-color: #ffd700; /* Amarelo para indicar que está ativo */
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  color: #856404; /* Cor do ícone quando ativo */
+}
+
+/* Placeholder para alinhar o header da CategoriesScreen */
+.placeholder-button {
+  width: 42px; /* Mesma largura do icon-button */
+  height: 42px;
+  visibility: hidden; /* Oculta, mas mantém o espaço */
+}
+
+.fono-box {
+  margin-top: 0.8rem;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  font-size: 0.9rem;
+  color: #493702;
 }
