@@ -975,3 +975,60 @@ input:checked + .slider:before {
   font-size: 0.9rem;
   color: #493702;
 }
+
+/* Estilo para o botão do Modo Fono na Home */
+.home-btn-fono {
+  background: linear-gradient(180deg, #e0e0e0, #bdbdbd); /* Cor padrão cinza */
+  color: #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1.1rem; /* Ajuste para o switch */
+}
+
+.home-btn-fono.active {
+  background: linear-gradient(180deg, #ffd700, #ffc107); /* Amarelo quando ativo */
+  color: #856404;
+}
+
+.home-btn-fono .btn-icon {
+  font-size: 1.3rem; /* Ajuste o tamanho do ícone */
+}
+
+.home-btn-fono .btn-text {
+  flex-grow: 1; /* Permite que o texto ocupe o espaço restante */
+  text-align: left;
+  margin-left: 0.8rem;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  width: 48px;
+  height: 28px;
+  background-color: #ccc;
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0; /* Impede que o switch encolha */
+}
+
+.toggle-switch.on {
+  background-color: #4caf50; /* Verde quando ligado */
+}
+
+.toggle-handle {
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.on .toggle-handle {
+  transform: translateX(20px); /* Move para a direita quando ligado */
+}

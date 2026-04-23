@@ -6,6 +6,7 @@ export const WORDS = [
     id: 'cachorro',
     palavra: 'CACHORRO',
     categoria: 'animais',
+    imagemUrl: '/imagens/cachorro.png', // Adicionado!
     regrasErro: [
       {
         erro: 'tatorro',
@@ -29,6 +30,7 @@ export const WORDS = [
     id: 'gato',
     palavra: 'GATO',
     categoria: 'animais',
+    imagemUrl: '/imagens/gato.png', // Adicionado!
     regrasErro: [
       {
         erro: 'dato',
@@ -52,6 +54,7 @@ export const WORDS = [
     id: 'pato',
     palavra: 'PATO',
     categoria: 'animais',
+    imagemUrl: '/imagens/pato.png', // Adicionado!
     regrasErro: [
       {
         erro: 'bato',
@@ -75,6 +78,7 @@ export const WORDS = [
     id: 'rato',
     palavra: 'RATO',
     categoria: 'animais',
+    imagemUrl: '/imagens/rato.png', // Adicionado!
     regrasErro: [
       {
         erro: 'lato',
@@ -98,6 +102,7 @@ export const WORDS = [
     id: 'vaca',
     palavra: 'VACA',
     categoria: 'animais',
+    imagemUrl: '/imagens/vaca.png', // Adicionado!
     regrasErro: [
       {
         erro: 'baca',
@@ -123,6 +128,7 @@ export const WORDS = [
     id: 'maca',
     palavra: 'MAÇÃ',
     categoria: 'comidas',
+    imagemUrl: '/imagens/maca.png', // Adicionado!
     regrasErro: [
       {
         erro: 'masa',
@@ -146,6 +152,7 @@ export const WORDS = [
     id: 'banana',
     palavra: 'BANANA',
     categoria: 'comidas',
+    imagemUrl: '/imagens/banana.png', // Adicionado!
     regrasErro: [
       {
         erro: 'anana',
@@ -169,6 +176,7 @@ export const WORDS = [
     id: 'suco',
     palavra: 'SUCO',
     categoria: 'comidas',
+    imagemUrl: '/imagens/suco.png', // Adicionado!
     regrasErro: [
       {
         erro: 'tuco',
@@ -194,6 +202,7 @@ export const WORDS = [
     id: 'bola',
     palavra: 'BOLA',
     categoria: 'brinquedos',
+    imagemUrl: '/imagens/bola.png', // Adicionado!
     regrasErro: [
       {
         erro: 'boa',
@@ -219,6 +228,7 @@ export const WORDS = [
     id: 'mesa',
     palavra: 'MESA',
     categoria: 'casa',
+    imagemUrl: '/imagens/mesa.png', // Adicionado!
     regrasErro: [
       {
         erro: 'mea',

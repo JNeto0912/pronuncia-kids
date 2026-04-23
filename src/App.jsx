@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
+import { WORDS } from "./data/words";
 
 const SCREEN = {
   HOME: "HOME",
@@ -7,7 +8,7 @@ const SCREEN = {
   TRAINING: "TRAINING",
 };
 
-// Processos fonológicos baseados na tabela (reintroduzido do seu App.jsx anterior)
+// ---------------- PROCESSOS FONOLÓGICOS ----------------
 const PROCESSOS_FONOLOGICOS = [
   {
     id: "reducao_silaba",
@@ -48,7 +49,7 @@ const PROCESSOS_FONOLOGICOS = [
     nome: "Sonorização de plosivas",
     definicao:
       "Fonemas fricativos desvozeados /f, s, ʃ/ são produzidos como os vozeados /b, d, g/.",
-    idadeLimite: "2 anos e 6 meses",
+    idadeLimite: "2 anos e 2 meses",
   },
   {
     id: "sonorizacao_fricativas",
@@ -115,230 +116,12 @@ const PROCESSOS_FONOLOGICOS = [
   },
 ];
 
-const WORDS = [
-  // ANIMAIS
-  {
-    id: "cachorro", // ID deve ser string para usar no src da imagem
-    texto: "cachorro",
-    categoria: "animais",
-    imagemUrl: "/imagens/cachorro.png",
-    fonemaAlvo: "/k/ /ʃ/ /ʁ/",
-    regrasErro: [
-      { padrao: "tachorro", processoId: "frontalizacao_velar" },
-      { padrao: "cachoro", processoId: "simplificacao_consoante_final" },
-      { padrao: "catorro", processoId: "plosivacao_fricativas" }, // Exemplo
-    ],
-  },
-  {
-    id: "gato",
-    texto: "gato",
-    categoria: "animais",
-    imagemUrl: "/imagens/gato.png",
-    fonemaAlvo: "/g/ /t/",
-    regrasErro: [
-      { padrao: "dato", processoId: "frontalizacao_velar" },
-      { padrao: "ato", processoId: "reducao_silaba" },
-    ],
-  },
-  {
-    id: "pato",
-    texto: "pato",
-    categoria: "animais",
-    imagemUrl: "/imagens/pato.png",
-    fonemaAlvo: "/p/ /t/",
-    regrasErro: [
-      { padrao: "bato", processoId: "sonorizacao_plosivas" },
-      { padrao: "ato", processoId: "reducao_silaba" },
-    ],
-  },
-  {
-    id: "elefante",
-    texto: "elefante",
-    categoria: "animais",
-    imagemUrl: "/imagens/elefante.png",
-    fonemaAlvo: "/l/ /f/ /n/ /t/",
-    regrasErro: [
-      { padrao: "efante", processoId: "reducao_silaba" },
-      { padrao: "erefan", processoId: "simplificacao_consoante_final" },
-    ],
-  },
-  {
-    id: "macaco",
-    texto: "macaco",
-    categoria: "animais",
-    imagemUrl: "/imagens/macaco.png",
-    fonemaAlvo: "/m/ /k/",
-    regrasErro: [
-      { padrao: "mataco", processoId: "frontalizacao_velar" },
-      { padrao: "acaco", processoId: "reducao_silaba" },
-    ],
-  },
-  // COMIDA
-  {
-    id: "banana",
-    texto: "banana",
-    categoria: "comida",
-    imagemUrl: "/imagens/banana.png",
-    fonemaAlvo: "/b/ /n/",
-    regrasErro: [
-      { padrao: "nanana", processoId: "reducao_silaba" },
-      { padrao: "manana", processoId: "harmonia_consonantal" },
-    ],
-  },
-  {
-    id: "maça",
-    texto: "maçã",
-    categoria: "comida",
-    imagemUrl: "/imagens/maca.png",
-    fonemaAlvo: "/m/ /s/",
-    regrasErro: [
-      { padrao: "ma", processoId: "simplificacao_consoante_final" },
-      { padrao: "mata", processoId: "plosivacao_fricativas" },
-    ],
-  },
-  {
-    id: "pão",
-    texto: "pão",
-    categoria: "comida",
-    imagemUrl: "/imagens/pao.png",
-    fonemaAlvo: "/p/",
-    regrasErro: [{ padrao: "bão", processoId: "sonorizacao_plosivas" }],
-  },
-  {
-    id: "leite",
-    texto: "leite",
-    categoria: "comida",
-    imagemUrl: "/imagens/leite.png",
-    fonemaAlvo: "/l/ /t/",
-    regrasErro: [
-      { padrao: "eite", processoId: "reducao_silaba" },
-      { padrao: "reite", processoId: "simplificacao_liquida" },
-    ],
-  },
-  {
-    id: "arroz",
-    texto: "arroz",
-    categoria: "comida",
-    imagemUrl: "/imagens/arroz.png",
-    fonemaAlvo: "/ʁ/ /s/",
-    regrasErro: [
-      { padrao: "aoz", processoId: "reducao_silaba" },
-      { padrao: "aroz", processoId: "simplificacao_consoante_final" },
-    ],
-  },
-  // BRINQUEDOS
-  {
-    id: "bola",
-    texto: "bola",
-    categoria: "brinquedos",
-    imagemUrl: "/imagens/bola.png",
-    fonemaAlvo: "/b/ /l/",
-    regrasErro: [
-      { padrao: "pola", processoId: "ensurdecimento_plosivas" },
-      { padrao: "boda", processoId: "simplificacao_liquida" },
-    ],
-  },
-  {
-    id: "carro",
-    texto: "carro",
-    categoria: "brinquedos",
-    imagemUrl: "/imagens/carro.png",
-    fonemaAlvo: "/k/ /ʁ/",
-    regrasErro: [
-      { padrao: "tarro", processoId: "frontalizacao_velar" },
-      { padrao: "caho", processoId: "simplificacao_consoante_final" },
-    ],
-  },
-  {
-    id: "boneca",
-    texto: "boneca",
-    categoria: "brinquedos",
-    imagemUrl: "/imagens/boneca.png",
-    fonemaAlvo: "/b/ /n/ /k/",
-    regrasErro: [
-      { padrao: "poneta", processoId: "ensurdecimento_plosivas" },
-      { padrao: "boneta", processoId: "frontalizacao_velar" },
-    ],
-  },
-  {
-    id: "pipa",
-    texto: "pipa",
-    categoria: "brinquedos",
-    imagemUrl: "/imagens/pipa.png",
-    fonemaAlvo: "/p/",
-    regrasErro: [{ padrao: "bipa", processoId: "sonorizacao_plosivas" }],
-  },
-  {
-    id: "urso",
-    texto: "urso",
-    categoria: "brinquedos",
-    imagemUrl: "/imagens/urso.png",
-    fonemaAlvo: "/ʁ/ /s/",
-    regrasErro: [
-      { padrao: "uso", processoId: "simplificacao_consoante_final" },
-      { padrao: "urto", processoId: "plosivacao_fricativas" },
-    ],
-  },
-  // CASA
-  {
-    id: "mesa",
-    texto: "mesa",
-    categoria: "casa",
-    imagemUrl: "/imagens/mesa.png",
-    fonemaAlvo: "/m/ /z/",
-    regrasErro: [
-      { padrao: "meza", processoId: "ensurdecimento_fricativas" },
-      { padrao: "meta", processoId: "plosivacao_fricativas" },
-    ],
-  },
-  {
-    id: "cadeira",
-    texto: "cadeira",
-    categoria: "casa",
-    imagemUrl: "/imagens/cadeira.png",
-    fonemaAlvo: "/k/ /d/ /ʁ/",
-    regrasErro: [
-      { padrao: "tadeira", processoId: "frontalizacao_velar" },
-      { padrao: "cadeia", processoId: "simplificacao_liquida" },
-    ],
-  },
-  {
-    id: "cama",
-    texto: "cama",
-    categoria: "casa",
-    imagemUrl: "/imagens/cama.png",
-    fonemaAlvo: "/k/ /m/",
-    regrasErro: [
-      { padrao: "tama", processoId: "frontalizacao_velar" },
-      { padrao: "ama", processoId: "reducao_silaba" },
-    ],
-  },
-  {
-    id: "porta",
-    texto: "porta",
-    categoria: "casa",
-    imagemUrl: "/imagens/porta.png",
-    fonemaAlvo: "/p/ /ʁ/ /t/",
-    regrasErro: [
-      { padrao: "pota", processoId: "simplificacao_liquida" },
-      { padrao: "borta", processoId: "sonorizacao_plosivas" },
-    ],
-  },
-  {
-    id: "janela",
-    texto: "janela",
-    categoria: "casa",
-    imagemUrl: "/imagens/janela.png",
-    fonemaAlvo: "/ʒ/ /n/ /l/",
-    regrasErro: [
-      { padrao: "zanela", processoId: "frontalizacao_palatal" },
-      { padrao: "anela", processoId: "reducao_silaba" },
-    ],
-  },
-];
-
 // Função de similaridade (Levenshtein Distance)
 function getSimilarity(s1, s2) {
+  if (!s1 || !s2) return 0;
+
+  // Removendo a normalização de diacríticos aqui para que a comparação seja mais "bruta"
+  // e a análise fono possa lidar com isso de forma mais controlada.
   s1 = s1.toLowerCase();
   s2 = s2.toLowerCase();
 
@@ -366,118 +149,52 @@ function getSimilarity(s1, s2) {
   return 1 - distance / maxLength;
 }
 
-// Função para analisar erros fonológicos (reintroduzido do seu App.jsx anterior)
-function analisarFono(transcricao, palavraAlvo) {
-  const transcricaoLimpa = transcricao.toLowerCase().trim();
-  const palavraAlvoLimpa = palavraAlvo.texto.toLowerCase().trim();
+// Função para analisar fonologicamente (ajustada para igualdade exata do erro)
+const analisarFono = (spoken, targetWord) => {
+  // Normaliza ambas as strings para remover acentos e caracteres especiais
+  const spokenNormalized = spoken.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  const targetNormalized = targetWord.palavra.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
 
   // Acerto perfeito
-  if (transcricaoLimpa === palavraAlvoLimpa) {
-    return { tipo: "acerto", descricao: "Produção adequada." };
+  if (spokenNormalized === targetNormalized) {
+    return { tipo: "acerto", descricao: "A produção da palavra está adequada." };
   }
 
-  // Tentar encontrar um processo fonológico
-  for (const regra of palavraAlvo.regrasErro || []) {
-    if (transcricaoLimpa.includes(regra.padrao.toLowerCase())) {
-      const processo = PROCESSOS_FONOLOGICOS.find(
-        (p) => p.id === regra.processoId
-      );
-      if (processo) {
+  // Procura por regras de erro específicas para a palavra
+  if (targetWord.regrasErro) {
+    for (const regra of targetWord.regrasErro) {
+      const erroNormalized = regra.erro.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+      // Compara se a fala do usuário é EXATAMENTE igual ao erro esperado
+      if (spokenNormalized === erroNormalized) {
+        const processoEncontrado = PROCESSOS_FONOLOGICOS.find(
+          (p) => p.nome === regra.processo // Busca pelo nome do processo
+        );
         return {
-          tipo: "erro_fonologico",
-          processo: processo,
-          descricao: `Pode indicar ${processo.nome}.`,
+          tipo: "erro_especifico",
+          processo: processoEncontrado || { nome: regra.processo, definicao: regra.descricao, idadeLimite: regra.idadeEsperada },
+          descricao: regra.descricao,
+          ipaCorreto: regra.ipaCorreto,
+          ipaErro: regra.ipaErro,
         };
       }
     }
   }
 
   // Se não classificou, mas é um erro
-  return {
-    tipo: "nao_classificado",
-    descricao: "Erro de pronúncia não classificado.",
-  };
-}
+  return { tipo: "nao_classificado", descricao: "Erro de pronúncia não classificado." };
+};
 
-// Componente FeedbackModal (reintroduzido do seu App.jsx anterior)
-function FeedbackModal({
-  word,
-  isCorrect,
-  onNextWord,
-  modoFonoAtivo,
-  processoDetectado,
-  transcription,
-}) {
-  const title = isCorrect ? "Muito bem!" : "Vamos tentar de novo?";
-  const icon = isCorrect ? "⭐" : "🤔";
-  const subText = isCorrect
-    ? "Você falou direitinho. Vamos para a próxima palavra?"
-    : `A palavra era "${word}". Você disse "${transcription}".`;
-  const buttonText = isCorrect ? "Próxima palavra ▶" : "Tentar novamente";
-
-  return (
-    <div className="feedback-modal-overlay">
-      <div className={`feedback-modal-card ${isCorrect ? "correct" : "incorrect"}`}>
-        <div className="feedback-modal-icon">{icon}</div>
-        <h2 className={`feedback-modal-title ${isCorrect ? "correct" : "incorrect"}`}>
-          {title}
-        </h2>
-        <p className="feedback-modal-word">{word.toUpperCase()}</p>
-        <p className="feedback-modal-spoken">{subText}</p>
-
-        {modoFonoAtivo && processoDetectado && (
-          <div className="fono-box-modal">
-            <h4>Análise Fonoaudiológica:</h4>
-            {processoDetectado.processo ? (
-              <>
-                <p>
-                  <strong>Processo:</strong> {processoDetectado.processo.nome}
-                </p>
-                <p>
-                  <strong>Definição:</strong> {processoDetectado.processo.definicao}
-                </p>
-                {processoDetectado.processo.idadeLimite && (
-                  <p>
-                    <strong>Idade esperada de eliminação:</strong>{" "}
-                    {processoDetectado.processo.idadeLimite}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p>
-                <strong>Tipo:</strong>{" "}
-                {processoDetectado.tipo === "acerto"
-                  ? "Produção adequada ✅"
-                  : processoDetectado.tipo === "nao_classificado"
-                  ? "Erro não classificado"
-                  : processoDetectado.tipo}
-              </p>
-            )}
-            {processoDetectado.descricao && (
-              <p>
-                <strong>Resumo:</strong> {processoDetectado.descricao}
-              </p>
-            )}
-          </div>
-        )}
-
-        <button className="feedback-modal-button" onClick={onNextWord}>
-          {buttonText}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* -------- HOME SCREEN -------- */
-// Recebe modoFonoAtivo e setModoFonoAtivo do App
+// Componente HomeScreen
 function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
   return (
     <div className="home-container">
-      <header className="home-header">
+      <div className="home-header">
         <div className="home-mascot-circle">
-            {/* Substitua o <span>🦊</span> por esta tag <img> */}
-            <img src="/icons/fox_avatar.png" alt="Mascote" className="home-mascot-image" />
+          <img
+            src="/icons/fox_avatar.png"
+            alt="Mascote"
+            className="home-mascot-image"
+          />
         </div>
         <div className="home-logo-wrapper">
           <h1 className="home-logo">
@@ -485,7 +202,7 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
             <span className="home-logo-kids">Kids</span>
           </h1>
         </div>
-      </header>
+      </div>
 
       <main className="home-main">
         <div className="home-buttons">
@@ -493,59 +210,50 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
             <span className="btn-icon">▶</span>
             <span className="btn-text">Começar</span>
           </button>
-          <button className="home-btn home-btn-progress">
+          <button
+            className="home-btn home-btn-progress"
+            onClick={() => alert("Meu Progresso — em breve!")}
+          >
             <span className="btn-icon">📊</span>
             <span className="btn-text">Meu Progresso</span>
           </button>
-          <button className="home-btn home-btn-settings">
+          <button
+            className="home-btn home-btn-settings"
+            onClick={() => alert("Configurações — em breve!")}
+          >
             <span className="btn-icon">⚙️</span>
             <span className="btn-text">Configurações</span>
           </button>
+          {/* Botão do Modo Fono na Home */}
+          <button
+            className={`home-btn home-btn-fono ${modoFonoAtivo ? 'active' : ''}`}
+            onClick={() => setModoFonoAtivo(!modoFonoAtivo)}
+          >
+            <span className="btn-icon">🎧</span>
+            <span className="btn-text">Modo Fono</span>
+            <div className={`toggle-switch ${modoFonoAtivo ? 'on' : 'off'}`}>
+              <div className="toggle-handle"></div>
+            </div>
+          </button>
         </div>
 
-        {/* NOVO: Botão de toggle para o Modo Fono */}
-        <div className="fono-toggle-container">
-          <span className="fono-toggle-icon">🎧</span>
-          <span className="fono-toggle-label">Modo Fono</span>
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={modoFonoAtivo}
-              onChange={() => setModoFonoAtivo(!modoFonoAtivo)}
-            />
-            <span className="slider round"></span>
-          </label>
-          <span className="fono-toggle-status">{modoFonoAtivo ? "ON" : "OFF"}</span>
+        <div className="home-footer">
+          <div className="home-clouds">
+            <div className="cloud cloud-1"></div>
+            <div className="cloud cloud-2"></div>
+            <div className="cloud cloud-3"></div>
+          </div>
+          <p className="home-hint">
+            App em desenvolvimento. Use sempre com acompanhamento de um
+            fonoaudiólogo.
+          </p>
         </div>
       </main>
-
-      <footer className="home-footer">
-        <div className="home-clouds">
-          <div className="cloud cloud-1"></div>
-          <div className="cloud cloud-2"></div>
-          <div className="cloud cloud-3"></div>
-        </div>
-        <p className="home-hint">
-          App em desenvolvimento. Use sempre com a supervisão de um adulto ou
-          fonoaudiólogo.
-        </p>
-      </footer>
-      {/* Elementos decorativos */}
-      <div className="decorative-elements">
-        <span className="note note-1">🎵</span>
-        <span className="note note-2">🎶</span>
-        <span className="letter letter-a">A</span>
-        <span className="letter letter-b">B</span>
-        <span className="letter letter-c">C</span>
-        <span className="star star-1">⭐</span>
-        <span className="star star-2">✨</span>
-      </div>
     </div>
   );
 }
 
 /* -------- CATEGORIES SCREEN -------- */
-
 function CategoriesScreen({ onBack, onSelectCategory }) {
   const categories = [
     { id: "animais", emoji: "🦁", label: "Animais", colorClass: "category-animals" },
@@ -572,6 +280,8 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
             className={`category-card ${category.colorClass}`}
             onClick={() => onSelectCategory(category.id)}
           >
+            {/* Se você tiver imagens para as categorias, pode usar aqui */}
+            {/* <img src={`/icons/${category.id}.png`} alt={category.label} className="category-icon" /> */}
             <span className="category-emoji">{category.emoji}</span>
             <span className="category-label">{category.label}</span>
           </button>
@@ -582,111 +292,44 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
 }
 
 /* -------- TRAINING SCREEN -------- */
-// Recebe modoFonoAtivo e setModoFonoAtivo do App
-function TrainingScreen({ categoriaSelecionada, onBack }) {
+function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFonoAtivo }) {
   const palavrasDaCategoria = WORDS.filter(
     (w) => w.categoria === categoriaSelecionada
   );
-  const [currentIndex, setCurrentIndex] = useState(0);
 
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isSupported, setIsSupported] = useState(true);
   const [isListening, setIsListening] = useState(false);
   const [spokenText, setSpokenText] = useState("");
-  const [accuracy, setAccuracy] = useState(null);
   const [feedback, setFeedback] = useState("");
+  const [accuracy, setAccuracy] = useState(null);
+  const [fonoInfo, setFonoInfo] = useState(null);
   const [showCongrats, setShowCongrats] = useState(false);
 
-  // NOVO: estado para modo fono e info de fono
-  const [modoFonoAtivo, setModoFonoAtivo] = useState(false);
-  const [fonoInfo, setFonoInfo] = useState(null);
+  const [estrelasSessao, setEstrelasSessao] = useState(0);
+  const objetivoSessao = 5; // Por exemplo: a cada 5 acertos, completa uma "figurinha"
 
-  const currentWord = palavrasDaCategoria[currentIndex];
+  const currentWord =
+    palavrasDaCategoria[currentIndex % palavrasDaCategoria.length];
 
   useEffect(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setIsSupported(false);
-      return;
-    }
-    setIsSupported(true);
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) setIsSupported(false);
   }, []);
 
-  function getSimilarity(expected, spoken) {
-    if (!expected || !spoken) return 0;
+  useEffect(() => {
+    setCurrentIndex(0);
+    resetState();
+    setEstrelasSessao(0); // Reseta as estrelas ao mudar de categoria
+  }, [categoriaSelecionada]);
 
-    const a = expected.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-    const b = spoken.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-
-    // distância de Levenshtein simples
-    const dp = Array.from({ length: a.length + 1 }, () =>
-      Array(b.length + 1).fill(0)
-    );
-    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
-    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
-
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1,
-          dp[i][j - 1] + 1,
-          dp[i - 1][j - 1] + cost
-        );
-      }
-    }
-
-    const dist = dp[a.length][b.length];
-    const maxLen = Math.max(a.length, b.length) || 1;
-    const similarity = 1 - dist / maxLen;
-    return Math.max(0, Math.min(1, similarity));
-  }
-
-  function analisarFono(palavra, falado) {
-    if (!falado) {
-      return {
-        tipo: "sem_dado",
-        descricao: "Nenhuma produção de fala capturada.",
-      };
-    }
-
-    const faladoNorm = falado.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-    const alvoNorm = palavra.texto.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-
-    if (faladoNorm === alvoNorm) {
-      return {
-        tipo: "acerto",
-        descricao: "Produção adequada da palavra alvo.",
-      };
-    }
-
-    // tenta casar com regras fonológicas definidas na palavra
-    for (const regra of palavra.regrasErro || []) {
-      const padraoNorm = regra.padrao
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
-
-      if (faladoNorm === padraoNorm) {
-        const processo = PROCESSOS_FONOLOGICOS.find(
-          (p) => p.id === regra.processoId
-        );
-        return {
-          tipo: "processo_encontrado",
-          processo,
-          descricao: processo
-            ? `Possível ocorrência de ${processo.nome}.`
-            : "Processo fonológico não identificado na tabela.",
-        };
-      }
-    }
-
-    return {
-      tipo: "nao_classificado",
-      descricao:
-        "Houve diferença na produção, mas não foi possível classificar em um dos processos cadastrados.",
-    };
-  }
+  const resetState = () => {
+    setSpokenText("");
+    setFeedback("");
+    setAccuracy(null);
+    setFonoInfo(null);
+    setShowCongrats(false);
+  };
 
   function startListening() {
     const SpeechRecognition =
@@ -713,11 +356,12 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
       const transcript = event.results[0][0].transcript.trim();
       setSpokenText(transcript);
 
-      const sim = getSimilarity(currentWord.texto, transcript);
+      const sim = getSimilarity(currentWord.palavra, transcript); // Usar currentWord.palavra
       setAccuracy(sim);
 
       if (sim >= 0.85) {
-        setFeedback("Muito bem! Você falou direitinho.");
+        setFeedback("Parabéns! Pronúncia excelente! 🎉");
+        setEstrelasSessao((prevStars) => prevStars + 1); // Incrementa as estrelas
         setShowCongrats(true);
       } else if (sim >= 0.6) {
         setFeedback("Quase lá! Tente falar mais devagar.");
@@ -726,12 +370,13 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
       }
 
       if (modoFonoAtivo) {
-        const analise = analisarFono(currentWord, transcript);
+        const analise = analisarFono(transcript, currentWord);
         setFonoInfo(analise);
       }
     };
 
     recognition.onerror = () => {
+      setFeedback("Erro ao escutar. Tente novamente.");
       setIsListening(false);
     };
 
@@ -771,6 +416,30 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
     casa: "Casa",
   };
 
+  if (!currentWord) {
+    return (
+      <div className="training-screen-bg">
+        <div className="training-pattern" />
+        <div className="training-screen">
+          <header className="training-topbar">
+            <button className="icon-button" onClick={onBack} title="Início">
+              🏠
+            </button>
+            <div className="training-logo-full">
+              <span className="training-logo-main">Pronúncia</span>
+              <span className="training-logo-sub">Kids</span>
+            </div>
+            <div className="placeholder-button"></div> {/* Para alinhamento */}
+          </header>
+          <main className="training-card">
+            <p>Nenhuma palavra encontrada para a categoria "{categoriaNome[categoriaSelecionada]}".</p>
+            <button className="nav-pill" onClick={onBack}>Voltar para Categorias</button>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="training-screen-bg">
       <div className="training-pattern" />
@@ -782,7 +451,7 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
           </button>
           <div className="training-logo-full">
             <span className="training-logo-main">Pronúncia</span>
-            <span className="training-logo-sub">Kids</span>
+            <span className="training-logo-kids">Kids</span>
           </div>
           <button
             className={`icon-button ${
@@ -800,24 +469,39 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
             {categoriaNome[categoriaSelecionada]}
           </p>
 
+          {/* NOVO: Estrelas da sessão */}
+          <div style={{ textAlign: 'center', marginBottom: '0.8rem' }}>
+            <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#FFD700', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+              Estrelas desta sessão:
+              {Array.from({ length: objetivoSessao }).map((_, i) => (
+                <span key={i} style={{ fontSize: '1.5rem', margin: '0 2px', opacity: i < estrelasSessao ? 1 : 0.3 }} >
+                  ⭐
+                </span>
+              ))}
+              <span style={{ marginLeft: 8, fontSize: '0.9rem' }}>
+                ({estrelasSessao} de {objetivoSessao})
+              </span>
+            </p>
+          </div>
+
           {currentWord.imagemUrl && (
             <div className="training-image-wrapper">
               <img
                 src={currentWord.imagemUrl}
-                alt={currentWord.texto}
+                alt={currentWord.palavra}
                 className="training-image"
               />
             </div>
           )}
 
-          <p className="training-word">{currentWord.texto.toUpperCase()}</p>
+          <p className="training-word">{currentWord.palavra.toUpperCase()}</p>
 
           <div className="training-audio-row">
             <button
               className="audio-button"
               onClick={() => {
                 const utterance = new SpeechSynthesisUtterance(
-                  currentWord.texto
+                  currentWord.palavra
                 );
                 utterance.lang = "pt-BR";
                 speechSynthesis.speak(utterance);
@@ -872,6 +556,16 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
                         {fonoInfo.processo.idadeLimite}
                       </p>
                     )}
+                    {fonoInfo.ipaCorreto && (
+                      <p>
+                        <strong>IPA Correto:</strong> {fonoInfo.ipaCorreto}
+                      </p>
+                    )}
+                    {fonoInfo.ipaErro && (
+                      <p>
+                        <strong>IPA Erro:</strong> {fonoInfo.ipaErro}
+                      </p>
+                    )}
                   </>
                 ) : (
                   <p>
@@ -915,10 +609,11 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
               <div className="congrats-star">⭐</div>
               <h2 className="congrats-title">Muito bem!</h2>
               <p className="congrats-word">
-                {currentWord.texto.toUpperCase()}
+                {currentWord.palavra.toUpperCase()}
               </p>
               <p className="congrats-sub">
-                Você falou direitinho. Vamos para a próxima palavra?
+                Você já tem {estrelasSessao} de {objetivoSessao} estrelas
+                nesta sessão!
               </p>
               <button className="congrats-button" onClick={nextWord}>
                 Próxima palavra ▶
@@ -932,42 +627,45 @@ function TrainingScreen({ categoriaSelecionada, onBack }) {
 }
 
 /* -------- APP RAIZ -------- */
-
 function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
-  const [modoFonoAtivo, setModoFonoAtivo] = useState(false); // Estado global para o modo fono
+  const [modoFonoAtivo, setModoFonoAtivo] = useState(false);
 
-  return (
-    <>
-      {screen === SCREEN.HOME && (
-        <HomeScreen
-          onStart={() => setScreen(SCREEN.CATEGORIES)}
-          modoFonoAtivo={modoFonoAtivo}
-          setModoFonoAtivo={setModoFonoAtivo}
-        />
-      )}
+  if (screen === SCREEN.HOME) {
+    return (
+      <HomeScreen
+        onStart={() => setScreen(SCREEN.CATEGORIES)}
+        modoFonoAtivo={modoFonoAtivo}
+        setModoFonoAtivo={setModoFonoAtivo}
+      />
+    );
+  }
 
-      {screen === SCREEN.CATEGORIES && (
-        <CategoriesScreen
-          onBack={() => setScreen(SCREEN.HOME)}
-          onSelectCategory={(cat) => {
-            setCategoriaSelecionada(cat);
-            setScreen(SCREEN.TRAINING);
-          }}
-        />
-      )}
+  if (screen === SCREEN.CATEGORIES) {
+    return (
+      <CategoriesScreen
+        onBack={() => setScreen(SCREEN.HOME)}
+        onSelectCategory={(cat) => {
+          setCategoriaSelecionada(cat);
+          setScreen(SCREEN.TRAINING);
+        }}
+      />
+    );
+  }
 
-      {screen === SCREEN.TRAINING && categoriaSelecionada && (
-        <TrainingScreen
-          categoriaSelecionada={categoriaSelecionada}
-          onBack={() => setScreen(SCREEN.CATEGORIES)}
-          modoFonoAtivo={modoFonoAtivo}
-          setModoFonoAtivo={setModoFonoAtivo}
-        />
-      )}
-    </>
-  );
+  if (screen === SCREEN.TRAINING && categoriaSelecionada) {
+    return (
+      <TrainingScreen
+        categoriaSelecionada={categoriaSelecionada}
+        onBack={() => setScreen(SCREEN.CATEGORIES)}
+        modoFonoAtivo={modoFonoAtivo}
+        setModoFonoAtivo={setModoFonoAtivo}
+      />
+    );
+  }
+
+  return null;
 }
 
 export default App;
