@@ -60,10 +60,10 @@
 
 /* NOVO: Estilo para a imagem do mascote */
 .home-mascot-image {
-  width: 80px; /* Ajuste conforme o tamanho desejado */
-  height: 80px; /* Ajuste conforme o tamanho desejado */
-  object-fit: contain; /* Garante que a imagem caiba sem cortar */
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2)); /* Mantém o efeito de sombra */
+width: 800px;
+height: 183px;
+object-fit: contain;
+filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .home-mascot-emoji {
