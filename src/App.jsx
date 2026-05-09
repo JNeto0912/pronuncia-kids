@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import { WORDS } from "./data/words";
-
+import { AAC_CATEGORIES, AAC_SYMBOLS, AAC_SLOTS, AAC_CONTEXTS, AAC_ATALHOS } from "./data/symbols";
 const SCREEN = {
   HOME: "HOME",
   CATEGORIES: "CATEGORIES",
   TRAINING: "TRAINING",
+  AAC: "AAC", // novo
 };
 
 // ---------------- PROCESSOS FONOLÓGICOS ----------------
@@ -119,12 +120,8 @@ const PROCESSOS_FONOLOGICOS = [
 // Função de similaridade (Levenshtein Distance)
 function getSimilarity(s1, s2) {
   if (!s1 || !s2) return 0;
-
-  // Removendo a normalização de diacríticos aqui para que a comparação seja mais "bruta"
-  // e a análise fono possa lidar com isso de forma mais controlada.
   s1 = s1.toLowerCase();
   s2 = s2.toLowerCase();
-
   const costs = [];
   for (let i = 0; i <= s1.length; i++) {
     let lastValue = i;
@@ -149,29 +146,38 @@ function getSimilarity(s1, s2) {
   return 1 - distance / maxLength;
 }
 
-// Função para analisar fonologicamente (ajustada para igualdade exata do erro)
+// Função para analisar fonologicamente
 const analisarFono = (spoken, targetWord) => {
-  // Normaliza ambas as strings para remover acentos e caracteres especiais
-  const spokenNormalized = spoken.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-  const targetNormalized = targetWord.palavra.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  const spokenNormalized = spoken
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+  const targetNormalized = targetWord.palavra
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
 
-  // Acerto perfeito
   if (spokenNormalized === targetNormalized) {
     return { tipo: "acerto", descricao: "A produção da palavra está adequada." };
   }
 
-  // Procura por regras de erro específicas para a palavra
   if (targetWord.regrasErro) {
     for (const regra of targetWord.regrasErro) {
-      const erroNormalized = regra.erro.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
-      // Compara se a fala do usuário é EXATAMENTE igual ao erro esperado
+      const erroNormalized = regra.erro
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
       if (spokenNormalized === erroNormalized) {
         const processoEncontrado = PROCESSOS_FONOLOGICOS.find(
-          (p) => p.nome === regra.processo // Busca pelo nome do processo
+          (p) => p.nome === regra.processo
         );
         return {
           tipo: "erro_especifico",
-          processo: processoEncontrado || { nome: regra.processo, definicao: regra.descricao, idadeLimite: regra.idadeEsperada },
+          processo: processoEncontrado || {
+            nome: regra.processo,
+            definicao: regra.descricao,
+            idadeLimite: regra.idadeEsperada,
+          },
           descricao: regra.descricao,
           ipaCorreto: regra.ipaCorreto,
           ipaErro: regra.ipaErro,
@@ -180,12 +186,16 @@ const analisarFono = (spoken, targetWord) => {
     }
   }
 
-  // Se não classificou, mas é um erro
-  return { tipo: "nao_classificado", descricao: "Erro de pronúncia não classificado." };
+  return {
+    tipo: "nao_classificado",
+    descricao: "Erro de pronúncia não classificado.",
+  };
 };
 
-// Componente HomeScreen
-function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
+// ============================================================
+// COMPONENTE: HomeScreen
+// ============================================================
+function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo, onOpenAAC }) {
   return (
     <div className="home-container">
       <div className="home-header">
@@ -210,6 +220,15 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
             <span className="btn-icon">▶</span>
             <span className="btn-text">Começar</span>
           </button>
+
+    <button
+      className="home-btn home-btn-progress"
+      onClick={onOpenAAC}
+    >
+      <span className="btn-icon">🗣️</span>
+      <span className="btn-text">Comunicação Alternativa</span>
+    </button>
+
           <button
             className="home-btn home-btn-progress"
             onClick={() => alert("Meu Progresso — em breve!")}
@@ -224,14 +243,13 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
             <span className="btn-icon">⚙️</span>
             <span className="btn-text">Configurações</span>
           </button>
-          {/* Botão do Modo Fono na Home */}
           <button
-            className={`home-btn home-btn-fono ${modoFonoAtivo ? 'active' : ''}`}
+            className={`home-btn home-btn-fono ${modoFonoAtivo ? "active" : ""}`}
             onClick={() => setModoFonoAtivo(!modoFonoAtivo)}
           >
             <span className="btn-icon">🎧</span>
             <span className="btn-text">Modo Fono</span>
-            <div className={`toggle-switch ${modoFonoAtivo ? 'on' : 'off'}`}>
+            <div className={`toggle-switch ${modoFonoAtivo ? "on" : "off"}`}>
               <div className="toggle-handle"></div>
             </div>
           </button>
@@ -253,7 +271,9 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo }) {
   );
 }
 
-/* -------- CATEGORIES SCREEN -------- */
+// ============================================================
+// COMPONENTE: CategoriesScreen
+// ============================================================
 function CategoriesScreen({ onBack, onSelectCategory }) {
   const categories = [
     { id: "animais", emoji: "🦁", label: "Animais", colorClass: "category-animals" },
@@ -269,10 +289,8 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
           ◀
         </button>
         <h2 className="categories-title">Escolha uma Categoria</h2>
-        {/* Placeholder para manter o alinhamento, já que a HomeScreen tem 3 itens no header */}
         <div className="placeholder-button"></div>
       </header>
-
       <main className="categories-grid">
         {categories.map((category) => (
           <button
@@ -280,8 +298,6 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
             className={`category-card ${category.colorClass}`}
             onClick={() => onSelectCategory(category.id)}
           >
-            {/* Se você tiver imagens para as categorias, pode usar aqui */}
-            {/* <img src={`/icons/${category.id}.png`} alt={category.label} className="category-icon" /> */}
             <span className="category-emoji">{category.emoji}</span>
             <span className="category-label">{category.label}</span>
           </button>
@@ -291,7 +307,9 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
   );
 }
 
-/* -------- TRAINING SCREEN -------- */
+// ============================================================
+// COMPONENTE: TrainingScreen
+// ============================================================
 function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFonoAtivo }) {
   const palavrasDaCategoria = WORDS.filter(
     (w) => w.categoria === categoriaSelecionada
@@ -305,9 +323,8 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
   const [accuracy, setAccuracy] = useState(null);
   const [fonoInfo, setFonoInfo] = useState(null);
   const [showCongrats, setShowCongrats] = useState(false);
-
   const [estrelasSessao, setEstrelasSessao] = useState(0);
-  const objetivoSessao = 5; // Por exemplo: a cada 5 acertos, completa uma "figurinha"
+  const objetivoSessao = 5;
 
   const currentWord =
     palavrasDaCategoria[currentIndex % palavrasDaCategoria.length];
@@ -320,7 +337,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
   useEffect(() => {
     setCurrentIndex(0);
     resetState();
-    setEstrelasSessao(0); // Reseta as estrelas ao mudar de categoria
+    setEstrelasSessao(0);
   }, [categoriaSelecionada]);
 
   const resetState = () => {
@@ -334,12 +351,10 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
   function startListening() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
-
     if (!SpeechRecognition) {
       setIsSupported(false);
       return;
     }
-
     const recognition = new SpeechRecognition();
     recognition.lang = "pt-BR";
     recognition.interimResults = false;
@@ -350,40 +365,34 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
     setAccuracy(null);
     setFeedback("");
     setShowCongrats(false);
-    setFonoInfo(null); // limpa análise anterior
+    setFonoInfo(null);
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript.trim();
       setSpokenText(transcript);
-
-      const sim = getSimilarity(currentWord.palavra, transcript); // Usar currentWord.palavra
+      const sim = getSimilarity(currentWord.palavra, transcript);
       setAccuracy(sim);
-
       if (sim >= 0.85) {
         setFeedback("Parabéns! Pronúncia excelente! 🎉");
-        setEstrelasSessao((prevStars) => prevStars + 1); // Incrementa as estrelas
+        setEstrelasSessao((prevStars) => prevStars + 1);
         setShowCongrats(true);
       } else if (sim >= 0.6) {
         setFeedback("Quase lá! Tente falar mais devagar.");
       } else {
         setFeedback("Vamos tentar de novo, tudo bem?");
       }
-
       if (modoFonoAtivo) {
         const analise = analisarFono(transcript, currentWord);
         setFonoInfo(analise);
       }
     };
-
     recognition.onerror = () => {
       setFeedback("Erro ao escutar. Tente novamente.");
       setIsListening(false);
     };
-
     recognition.onend = () => {
       setIsListening(false);
     };
-
     recognition.start();
   }
 
@@ -422,18 +431,16 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
         <div className="training-pattern" />
         <div className="training-screen">
           <header className="training-topbar">
-            <button className="icon-button" onClick={onBack} title="Início">
-              🏠
-            </button>
+            <button className="icon-button" onClick={onBack} title="Início">🏠</button>
             <div className="training-logo-full">
               <span className="training-logo-main">Pronúncia</span>
               <span className="training-logo-sub">Kids</span>
             </div>
-            <div className="placeholder-button"></div> {/* Para alinhamento */}
+            <div className="placeholder-button"></div>
           </header>
           <main className="training-card">
-            <p>Nenhuma palavra encontrada para a categoria "{categoriaNome[categoriaSelecionada]}".</p>
-            <button className="nav-pill" onClick={onBack}>Voltar para Categorias</button>
+            <p>Nenhuma palavra encontrada para "{categoriaNome[categoriaSelecionada]}".</p>
+            <button className="nav-pill" onClick={onBack}>Voltar</button>
           </main>
         </div>
       </div>
@@ -443,20 +450,15 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
   return (
     <div className="training-screen-bg">
       <div className="training-pattern" />
-
       <div className="training-screen">
         <header className="training-topbar">
-          <button className="icon-button" onClick={onBack} title="Início">
-            🏠
-          </button>
+          <button className="icon-button" onClick={onBack} title="Início">🏠</button>
           <div className="training-logo-full">
             <span className="training-logo-main">Pronúncia</span>
             <span className="training-logo-kids">Kids</span>
           </div>
           <button
-            className={`icon-button ${
-              modoFonoAtivo ? "icon-button-active" : ""
-            }`}
+            className={`icon-button ${modoFonoAtivo ? "icon-button-active" : ""}`}
             onClick={() => setModoFonoAtivo(!modoFonoAtivo)}
             title={modoFonoAtivo ? "Desativar Modo Fono" : "Ativar Modo Fono"}
           >
@@ -465,20 +467,17 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
         </header>
 
         <main className="training-card">
-          <p className="training-category">
-            {categoriaNome[categoriaSelecionada]}
-          </p>
+          <p className="training-category">{categoriaNome[categoriaSelecionada]}</p>
 
-          {/* NOVO: Estrelas da sessão */}
-          <div style={{ textAlign: 'center', marginBottom: '0.8rem' }}>
-            <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#FFD700', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>
+          <div style={{ textAlign: "center", marginBottom: "0.8rem" }}>
+            <p style={{ fontSize: "1.1rem", fontWeight: "bold", color: "#FFD700", textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
               Estrelas desta sessão:
               {Array.from({ length: objetivoSessao }).map((_, i) => (
-                <span key={i} style={{ fontSize: '1.5rem', margin: '0 2px', opacity: i < estrelasSessao ? 1 : 0.3 }} >
+                <span key={i} style={{ fontSize: "1.5rem", margin: "0 2px", opacity: i < estrelasSessao ? 1 : 0.3 }}>
                   ⭐
                 </span>
               ))}
-              <span style={{ marginLeft: 8, fontSize: '0.9rem' }}>
+              <span style={{ marginLeft: 8, fontSize: "0.9rem" }}>
                 ({estrelasSessao} de {objetivoSessao})
               </span>
             </p>
@@ -486,11 +485,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
 
           {currentWord.imagemUrl && (
             <div className="training-image-wrapper">
-              <img
-                src={currentWord.imagemUrl}
-                alt={currentWord.palavra}
-                className="training-image"
-              />
+              <img src={currentWord.imagemUrl} alt={currentWord.palavra} className="training-image" />
             </div>
           )}
 
@@ -500,20 +495,15 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
             <button
               className="audio-button"
               onClick={() => {
-                const utterance = new SpeechSynthesisUtterance(
-                  currentWord.palavra
-                );
+                const utterance = new SpeechSynthesisUtterance(currentWord.palavra);
                 utterance.lang = "pt-BR";
                 speechSynthesis.speak(utterance);
               }}
             >
               🔊
             </button>
-
             <button
-              className={`mic-button ${
-                isListening ? "mic-button-listening" : ""
-              }`}
+              className={`mic-button ${isListening ? "mic-button-listening" : ""}`}
               onClick={startListening}
               disabled={!isSupported || isListening}
             >
@@ -525,47 +515,25 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
             <p className="training-result-line">
               <strong>Você disse:</strong> {spokenText || "—"}
             </p>
-
             {accuracy !== null && (
               <p className="training-result-line">
-                <strong>Similaridade:</strong>{" "}
-                {(accuracy * 100).toFixed(0)}%
+                <strong>Similaridade:</strong> {(accuracy * 100).toFixed(0)}%
               </p>
             )}
-
             {feedback && <p className="training-feedback">{feedback}</p>}
 
             {modoFonoAtivo && fonoInfo && (
               <div className="fono-box">
-                <p>
-                  <strong>Análise fonoaudiológica:</strong>
-                </p>
-
+                <p><strong>Análise fonoaudiológica:</strong></p>
                 {fonoInfo.processo ? (
                   <>
-                    <p>
-                      <strong>Processo:</strong> {fonoInfo.processo.nome}
-                    </p>
-                    <p>
-                      <strong>Definição:</strong>{" "}
-                      {fonoInfo.processo.definicao}
-                    </p>
+                    <p><strong>Processo:</strong> {fonoInfo.processo.nome}</p>
+                    <p><strong>Definição:</strong> {fonoInfo.processo.definicao}</p>
                     {fonoInfo.processo.idadeLimite && (
-                      <p>
-                        <strong>Idade esperada de eliminação:</strong>{" "}
-                        {fonoInfo.processo.idadeLimite}
-                      </p>
+                      <p><strong>Idade esperada de eliminação:</strong> {fonoInfo.processo.idadeLimite}</p>
                     )}
-                    {fonoInfo.ipaCorreto && (
-                      <p>
-                        <strong>IPA Correto:</strong> {fonoInfo.ipaCorreto}
-                      </p>
-                    )}
-                    {fonoInfo.ipaErro && (
-                      <p>
-                        <strong>IPA Erro:</strong> {fonoInfo.ipaErro}
-                      </p>
-                    )}
+                    {fonoInfo.ipaCorreto && <p><strong>IPA Correto:</strong> {fonoInfo.ipaCorreto}</p>}
+                    {fonoInfo.ipaErro && <p><strong>IPA Erro:</strong> {fonoInfo.ipaErro}</p>}
                   </>
                 ) : (
                   <p>
@@ -577,29 +545,14 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
                       : fonoInfo.tipo}
                   </p>
                 )}
-
-                {fonoInfo.descricao && (
-                  <p>
-                    <strong>Resumo:</strong> {fonoInfo.descricao}
-                  </p>
-                )}
+                {fonoInfo.descricao && <p><strong>Resumo:</strong> {fonoInfo.descricao}</p>}
               </div>
             )}
           </div>
 
           <div className="training-bottom-buttons">
-            <button
-              className="nav-pill nav-pill-left"
-              onClick={previousWord}
-            >
-              ◀ Anterior
-            </button>
-            <button
-              className="nav-pill nav-pill-right"
-              onClick={nextWord}
-            >
-              Próxima ▶
-            </button>
+            <button className="nav-pill nav-pill-left" onClick={previousWord}>◀ Anterior</button>
+            <button className="nav-pill nav-pill-right" onClick={nextWord}>Próxima ▶</button>
           </div>
         </main>
 
@@ -608,16 +561,11 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
             <div className="congrats-card">
               <div className="congrats-star">⭐</div>
               <h2 className="congrats-title">Muito bem!</h2>
-              <p className="congrats-word">
-                {currentWord.palavra.toUpperCase()}
-              </p>
+              <p className="congrats-word">{currentWord.palavra.toUpperCase()}</p>
               <p className="congrats-sub">
-                Você já tem {estrelasSessao} de {objetivoSessao} estrelas
-                nesta sessão!
+                Você já tem {estrelasSessao} de {objetivoSessao} estrelas nesta sessão!
               </p>
-              <button className="congrats-button" onClick={nextWord}>
-                Próxima palavra ▶
-              </button>
+              <button className="congrats-button" onClick={nextWord}>Próxima palavra ▶</button>
             </div>
           </div>
         )}
@@ -626,21 +574,222 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
   );
 }
 
-/* -------- APP RAIZ -------- */
+
+// ============================================================
+// COMPONENTE: App Raiz
+// ============================================================
+function AACScreen({ onBack }) {
+  const [contexto, setContexto] = useState("geral");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("quem");
+  const [slotsSelecionados, setSlotsSelecionados] = useState({
+    quem: null,
+    verbo: null,
+    complemento: null,
+  });
+
+  // Filtra símbolos pelo contexto atual
+  const simbolosFiltrados = AAC_SYMBOLS.filter(
+    (s) => s.contexto === contexto && s.categoria === categoriaSelecionada
+  );
+
+  // Atalhos válidos para o contexto (por enquanto todos "geral")
+  const atalhosContexto = AAC_ATALHOS.filter(
+    (a) => a.contexto === "geral" || a.contexto === contexto
+  );
+
+  const falar = (texto) => {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = "pt-BR";
+    window.speechSynthesis.speak(u);
+  };
+
+  const handleSymbolClick = (simbolo) => {
+    if (simbolo.slot) {
+      setSlotsSelecionados((prev) => ({
+        ...prev,
+        [simbolo.slot]: simbolo,
+      }));
+    }
+    falar(simbolo.fala || simbolo.texto);
+  };
+
+  const limparTudo = () => {
+    setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
+  };
+
+  const falarFraseCompleta = () => {
+    const partes = AAC_SLOTS.map((slot) => {
+      const s = slotsSelecionados[slot];
+      return s ? (s.fala || s.texto) : null;
+    }).filter(Boolean);
+
+    if (partes.length === 0) return;
+
+    // Regra: se só tiver um complemento (ex: "água"), podemos falar frase completa
+    if (partes.length === 1 && slotsSelecionados.complemento && !slotsSelecionados.quem && !slotsSelecionados.verbo) {
+      falar(`Eu quero ${slotsSelecionados.complemento.fala || slotsSelecionados.complemento.texto}`);
+      return;
+    }
+
+    falar(partes.join(" "));
+  };
+
+  const temAlgoSelecionado =
+    slotsSelecionados.quem ||
+    slotsSelecionados.verbo ||
+    slotsSelecionados.complemento;
+
+  const handleAtalhoClick = (atalho) => {
+    falar(atalho.fala);
+    // Opcional: você pode preencher slots automaticamente, se fizer sentido
+    // ex: "quero_parar" -> quem=eu, verbo=quero, complemento=parar
+  };
+
+  return (
+    <div className="aac-container">
+      {/* Header */}
+      <header className="aac-header">
+        <button className="icon-button" onClick={onBack} title="Início">
+          🏠
+        </button>
+        <h2 className="aac-title">Comunicação Alternativa</h2>
+        <div className="placeholder-button"></div>
+      </header>
+
+      {/* CONTEXTO: Terapia / Casa / Escola / Geral */}
+      <div className="aac-context-bar">
+        {AAC_CONTEXTS.map((ctx) => (
+          <button
+            key={ctx.id}
+            className={`aac-context-btn ${
+              contexto === ctx.id ? "active" : ""
+            }`}
+            onClick={() => {
+              setContexto(ctx.id);
+              setCategoriaSelecionada("quem");
+              setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
+            }}
+          >
+            <span className="aac-context-emoji">{ctx.emoji}</span>
+            <span className="aac-context-label">{ctx.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ATALHOS FUNDAMENTAIS */}
+<div className="aac-atalhos-bar">
+  {atalhosContexto.map((atalho) => (
+    <button
+      key={atalho.id}
+      className="aac-atalho-card"
+      onClick={() => handleAtalhoClick(atalho)}
+    >
+      <span className="aac-atalho-emoji">{atalho.emoji}</span>
+      <span className="aac-atalho-label">{atalho.label}</span>
+    </button>
+  ))}
+</div>
+      {/* Barra de frase com 3 slots */}
+      <div className="aac-phrase-bar">
+        <p className="aac-phrase-bar-label">Monte sua frase:</p>
+        <div className="aac-phrase-slots">
+          {AAC_SLOTS.map((slot) => {
+            const s = slotsSelecionados[slot];
+            const label =
+              slot === "quem" ? "👤 Quem?" :
+              slot === "verbo" ? "⚙️ Verbo" : "💬 O quê?";
+            return (
+              <div key={slot} className={`aac-slot ${s ? "aac-slot-filled" : ""}`}>
+                <span className="aac-slot-label">{label}</span>
+                {s ? (
+                  <div className="aac-slot-token">
+                    <span className="aac-slot-emoji">{s.emoji}</span>
+                    <span className="aac-slot-text">{s.texto}</span>
+                  </div>
+                ) : (
+                  <div className="aac-slot-empty">—</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="aac-phrase-actions">
+          <button
+            className="aac-action-btn aac-btn-clear"
+            onClick={limparTudo}
+            disabled={!temAlgoSelecionado}
+          >
+            🗑️ Limpar
+          </button>
+          <button
+            className="aac-action-btn aac-btn-speak"
+            onClick={falarFraseCompleta}
+            disabled={!temAlgoSelecionado}
+          >
+            🔊 Falar frase
+          </button>
+        </div>
+      </div>
+
+      {/* Abas de categorias */}
+      <div className="aac-categories-bar">
+        {AAC_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            className={`aac-cat-btn ${
+              categoriaSelecionada === cat.id ? "active" : ""
+            }`}
+            onClick={() => setCategoriaSelecionada(cat.id)}
+          >
+            <span className="aac-cat-emoji">{cat.emoji}</span>
+            <span className="aac-cat-label">{cat.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Grid de símbolos */}
+      <main className="aac-symbols-grid">
+        {simbolosFiltrados.map((simbolo) => (
+          <button
+            key={simbolo.id}
+            className={`aac-symbol-card ${
+              slotsSelecionados[simbolo.slot]?.id === simbolo.id
+                ? "aac-symbol-card-selected"
+                : ""
+            }`}
+            onClick={() => handleSymbolClick(simbolo)}
+          >
+            <span className="aac-symbol-emoji">{simbolo.emoji}</span>
+            <span className="aac-symbol-label">{simbolo.texto}</span>
+          </button>
+        ))}
+        {simbolosFiltrados.length === 0 && (
+          <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#555" }}>
+            Nenhum símbolo para este contexto ainda.
+          </p>
+        )}
+      </main>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
   const [modoFonoAtivo, setModoFonoAtivo] = useState(false);
 
-  if (screen === SCREEN.HOME) {
-    return (
-      <HomeScreen
-        onStart={() => setScreen(SCREEN.CATEGORIES)}
-        modoFonoAtivo={modoFonoAtivo}
-        setModoFonoAtivo={setModoFonoAtivo}
-      />
-    );
-  }
+if (screen === SCREEN.HOME) {
+  return (
+    <HomeScreen
+      onStart={() => setScreen(SCREEN.CATEGORIES)}
+      modoFonoAtivo={modoFonoAtivo}
+      setModoFonoAtivo={setModoFonoAtivo}
+      onOpenAAC={() => setScreen(SCREEN.AAC)}
+    />
+  );
+}
 
   if (screen === SCREEN.CATEGORIES) {
     return (
@@ -663,6 +812,10 @@ function App() {
         setModoFonoAtivo={setModoFonoAtivo}
       />
     );
+  }
+
+  if (screen === SCREEN.AAC) {
+    return <AACScreen onBack={() => setScreen(SCREEN.HOME)} />;
   }
 
   return null;
