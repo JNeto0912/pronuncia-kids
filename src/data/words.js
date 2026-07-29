@@ -5,6 +5,7 @@ export const WORDS = [
   {
     id: 'cachorro',
     palavra: 'CACHORRO',
+    emoji: '🐶',
     categoria: 'animais',
     imagemUrl: '/imagens/cachorro.png',
     regrasErro: [
@@ -37,6 +38,7 @@ export const WORDS = [
   {
     id: 'gato',
     palavra: 'GATO',
+    emoji: '🐱',
     categoria: 'animais',
     imagemUrl: '/imagens/gato.png',
     regrasErro: [
@@ -61,6 +63,7 @@ export const WORDS = [
   {
     id: 'pato',
     palavra: 'PATO',
+    emoji: '🦆',
     categoria: 'animais',
     imagemUrl: '/imagens/pato.png',
     regrasErro: [
@@ -77,6 +80,7 @@ export const WORDS = [
   {
     id: 'rato',
     palavra: 'RATO',
+    emoji: '🐭',
     categoria: 'animais',
     imagemUrl: '/imagens/rato.png',
     regrasErro: [
@@ -101,6 +105,7 @@ export const WORDS = [
   {
     id: 'vaca',
     palavra: 'VACA',
+    emoji: '🐮',
     categoria: 'animais',
     imagemUrl: '/imagens/vaca.png',
     regrasErro: [
@@ -125,6 +130,7 @@ export const WORDS = [
   {
     id: 'jacare',
     palavra: 'JACARÉ',
+    emoji: '🐊',
     categoria: 'animais',
     imagemUrl: '/imagens/jacare.png',
     regrasErro: [
@@ -151,6 +157,7 @@ export const WORDS = [
   {
     id: 'maca',
     palavra: 'MAÇÃ',
+    emoji: '🍎',
     categoria: 'comidas',
     imagemUrl: '/imagens/maca.png',
     regrasErro: [
@@ -175,6 +182,7 @@ export const WORDS = [
   {
     id: 'banana',
     palavra: 'BANANA',
+    emoji: '🍌',
     categoria: 'comidas',
     imagemUrl: '/imagens/banana.png',
     regrasErro: [
@@ -191,6 +199,7 @@ export const WORDS = [
   {
     id: 'suco',
     palavra: 'SUCO',
+    emoji: '🧃',
     categoria: 'comidas',
     imagemUrl: '/imagens/suco.png',
     regrasErro: [
@@ -207,6 +216,7 @@ export const WORDS = [
   {
     id: 'sorvete',
     palavra: 'SORVETE',
+    emoji: '🍨',
     categoria: 'comidas',
     imagemUrl: '/imagens/sorvete.png',
     regrasErro: [
@@ -233,6 +243,7 @@ export const WORDS = [
   {
     id: 'bola',
     palavra: 'BOLA',
+    emoji: '⚽',
     categoria: 'brinquedos',
     imagemUrl: '/imagens/bola.png',
     regrasErro: [
@@ -249,6 +260,7 @@ export const WORDS = [
   {
     id: 'carro',
     palavra: 'CARRO',
+    emoji: '🚗',
     categoria: 'brinquedos',
     imagemUrl: '/imagens/carro.png',
     regrasErro: [
@@ -265,6 +277,7 @@ export const WORDS = [
   {
     id: 'trem',
     palavra: 'TREM',
+    emoji: '🚂',
     categoria: 'brinquedos',
     imagemUrl: '/imagens/trem.png',
     regrasErro: [
@@ -283,6 +296,7 @@ export const WORDS = [
   {
     id: 'mesa',
     palavra: 'MESA',
+    emoji: '🪑',
     categoria: 'casa',
     imagemUrl: '/imagens/mesa.png',
     regrasErro: [
@@ -299,6 +313,7 @@ export const WORDS = [
   {
     id: 'porta',
     palavra: 'PORTA',
+    emoji: '🚪',
     categoria: 'casa',
     imagemUrl: '/imagens/porta.png',
     regrasErro: [
@@ -315,6 +330,7 @@ export const WORDS = [
   {
     id: 'prato',
     palavra: 'PRATO',
+    emoji: '🍽️',
     categoria: 'casa',
     imagemUrl: '/imagens/prato.png',
     regrasErro: [

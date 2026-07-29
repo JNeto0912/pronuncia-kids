@@ -1,21 +1,42 @@
-<<<<<<< HEAD
-# React + Vite
+# Pronúncia Kids
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Protótipo de atividades lúdicas de fala infantil e comunicação alternativa.
 
-Currently, two official plugins are available:
+## Aviso importante
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+O reconhecimento automático informa se o navegador entendeu a palavra esperada. Ele não avalia fonemas com precisão e não substitui triagem, avaliação ou diagnóstico realizado por fonoaudiólogo.
 
-## React Compiler
+Dependendo do navegador, o áudio capturado pela Web Speech API pode ser processado por um serviço externo. O aplicativo não implementa armazenamento próprio das gravações.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Desenvolvimento
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-=======
-# pronuncia-kids
-Prototipo de app para fonoaudiologia infantil
->>>>>>> f616841789ab07e0fb8af5b9a2c4bc9c4e65f36a
+Verificações:
+
+```bash
+npm run lint
+npm test
+npm run build
+```
+
+## Estrutura atual
+
+- `src/App.jsx`: telas de início, categorias, treinamento e comunicação alternativa.
+- `src/data/words.js`: palavras e variantes cadastradas para orientação profissional.
+- `src/data/phonologicalProcesses.js`: catálogo provisório de processos.
+- `src/data/symbols.js`: símbolos de comunicação alternativa.
+- `src/domain/speechAnalysis.js`: normalização, similaridade e orientação etária.
+- `src/components`: componentes reutilizáveis, incluindo registro profissional.
+- `src/screens`: telas extraídas do componente principal.
+- `test`: testes automatizados da lógica de análise.
+- `docs/CLINICAL_REVIEW.md`: pendências obrigatórias de validação profissional.
+- `docs/PRIVACY.md`: estado atual e checklist para publicação.
+- `public/imagens`: imagens disponíveis para as atividades.
+
+As referências etárias e regras fonológicas devem ser revisadas e versionadas por profissional habilitado antes de uso fora de ambiente de protótipo.
+
+O progresso e as observações profissionais desta versão existem somente durante a sessão atual e são removidos quando a página é recarregada.

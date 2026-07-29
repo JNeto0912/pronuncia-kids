@@ -1,4 +1,6 @@
-// Estrutura básica da frase
+// src/data/symbols.js
+
+// Slots da frase
 export const AAC_SLOTS = ["quem", "verbo", "complemento"];
 
 // Contextos principais
@@ -9,7 +11,7 @@ export const AAC_CONTEXTS = [
   { id: "escola", label: "Escola", emoji: "🏫" },
 ];
 
-// Categorias dentro de cada contexto (visuais)
+// Categorias visuais
 export const AAC_CATEGORIES = [
   { id: "quem", label: "Quem?", emoji: "👤" },
   { id: "verbo", label: "Ação", emoji: "⚙️" },
@@ -20,8 +22,9 @@ export const AAC_CATEGORIES = [
   { id: "pessoas", label: "Pessoas", emoji: "👨‍👩‍👧" },
 ];
 
-// Atalhos de alta prioridade (fixos na barra)
+// Atalhos clínicos fundamentais (sempre com figura/emoji)
 export const AAC_ATALHOS = [
+  // Regulação geral
   {
     id: "nao_entendi",
     label: "Não entendi",
@@ -37,6 +40,13 @@ export const AAC_ATALHOS = [
     contexto: "geral",
   },
   {
+    id: "quero_pausa",
+    label: "Quero pausa",
+    fala: "Eu quero uma pausa",
+    emoji: "⏸️",
+    contexto: "geral",
+  },
+  {
     id: "quero_ajuda",
     label: "Quero ajuda",
     fala: "Eu preciso de ajuda",
@@ -44,10 +54,26 @@ export const AAC_ATALHOS = [
     contexto: "geral",
   },
   {
+    id: "nao_quero_isso",
+    label: "Não quero isso",
+    fala: "Eu não quero isso",
+    emoji: "🙅",
+    contexto: "geral",
+  },
+
+  // Sensações / ambiente
+  {
     id: "muito_barulho",
     label: "Muito barulho",
     fala: "Está muito barulho",
     emoji: "🔊",
+    contexto: "geral",
+  },
+  {
+    id: "muita_luz",
+    label: "Muita luz",
+    fala: "Está muita luz",
+    emoji: "💡",
     contexto: "geral",
   },
   {
@@ -57,10 +83,66 @@ export const AAC_ATALHOS = [
     emoji: "😴",
     contexto: "geral",
   },
+
+  // Emoções
+  {
+    id: "estou_nervoso",
+    label: "Estou nervoso",
+    fala: "Eu estou nervoso",
+    emoji: "😠",
+    contexto: "geral",
+  },
+  {
+    id: "estou_com_medo",
+    label: "Estou com medo",
+    fala: "Eu estou com medo",
+    emoji: "😨",
+    contexto: "geral",
+  },
+  {
+    id: "estou_triste",
+    label: "Estou triste",
+    fala: "Eu estou triste",
+    emoji: "😢",
+    contexto: "geral",
+  },
+  {
+    id: "estou_feliz",
+    label: "Estou feliz",
+    fala: "Eu estou feliz",
+    emoji: "😊",
+    contexto: "geral",
+  },
+
+  // Dor
+  {
+    id: "estou_com_dor",
+    label: "Estou com dor",
+    fala: "Eu estou com dor",
+    emoji: "🤕",
+    contexto: "geral",
+  },
+
+  // Terapia
+  {
+    id: "esta_dificil",
+    label: "Está difícil",
+    fala: "Está difícil",
+    emoji: "🧩",
+    contexto: "terapia",
+  },
+  {
+    id: "nao_consigo",
+    label: "Não consigo",
+    fala: "Eu não consigo",
+    emoji: "😣",
+    contexto: "terapia",
+  },
 ];
-// Símbolos (cada um tem: contexto, categoria visual, slot na frase)
+
+// Símbolos de frase (quem + verbo + complemento) por contexto
 export const AAC_SYMBOLS = [
-  // QUEM (pronomes/sujeitos) — geral
+  // QUEM (geral)
   {
     id: "eu",
     contexto: "geral",
@@ -107,7 +189,7 @@ export const AAC_SYMBOLS = [
     emoji: "👨‍👩‍👧",
   },
 
-  // VERBOS — geral
+  // VERBOS (geral)
   {
     id: "quero",
     contexto: "geral",
@@ -145,7 +227,7 @@ export const AAC_SYMBOLS = [
     emoji: "📍",
   },
 
-  // SENTIMENTOS — geral
+  // SENTIMENTOS (como complementos)
   {
     id: "feliz",
     contexto: "geral",
@@ -183,7 +265,7 @@ export const AAC_SYMBOLS = [
     emoji: "😨",
   },
 
-  // NECESSIDADES — geral
+  // NECESSIDADES
   {
     id: "banheiro",
     contexto: "geral",
@@ -221,7 +303,7 @@ export const AAC_SYMBOLS = [
     emoji: "🤕",
   },
 
-  // AÇÕES — geral
+  // AÇÕES
   {
     id: "brincar",
     contexto: "geral",
@@ -259,7 +341,7 @@ export const AAC_SYMBOLS = [
     emoji: "📺",
   },
 
-  // ALIMENTOS — geral
+  // ALIMENTOS
   {
     id: "comer",
     contexto: "geral",
@@ -297,7 +379,7 @@ export const AAC_SYMBOLS = [
     emoji: "🍪",
   },
 
-  // PESSOAS — geral
+  // PESSOAS
   {
     id: "mae",
     contexto: "geral",
@@ -326,7 +408,7 @@ export const AAC_SYMBOLS = [
     emoji: "👩‍🏫",
   },
 
-  // Exemplos específicos para contexto TERAPIA
+  // Alguns exemplos extras só para contexto TERAPIA
   {
     id: "brincar_terapia",
     contexto: "terapia",
@@ -337,12 +419,12 @@ export const AAC_SYMBOLS = [
     emoji: "🧸",
   },
   {
-    id: "exercicio_dificil",
+    id: "atividade_dificil",
     contexto: "terapia",
     categoria: "necessidades",
     slot: "complemento",
-    texto: "difícil",
-    fala: "está difícil",
+    texto: "atividade difícil",
+    fala: "a atividade está difícil",
     emoji: "🧩",
   },
 ];

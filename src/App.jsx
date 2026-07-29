@@ -1,201 +1,41 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./App.css";
 import { WORDS } from "./data/words";
-import { AAC_CATEGORIES, AAC_SYMBOLS, AAC_SLOTS, AAC_CONTEXTS, AAC_ATALHOS } from "./data/symbols";
+import {
+  AAC_ATALHOS,
+  AAC_CATEGORIES,
+  AAC_CONTEXTS,
+  AAC_SYMBOLS,
+  AAC_SLOTS,
+} from "./data/symbols";
+import {
+  analyzeTranscription,
+  getAgeGuidance,
+  getSimilarity,
+} from "./domain/speechAnalysis";
+import ProfessionalReview from "./components/ProfessionalReview";
+import SettingsScreen from "./screens/SettingsScreen";
+
 const SCREEN = {
   HOME: "HOME",
   CATEGORIES: "CATEGORIES",
   TRAINING: "TRAINING",
-  AAC: "AAC", // novo
-};
-
-// ---------------- PROCESSOS FONOLÓGICOS ----------------
-const PROCESSOS_FONOLOGICOS = [
-  {
-    id: "reducao_silaba",
-    nome: "Redução de sílaba",
-    definicao: "Uma das sílabas da palavra é omitida.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "harmonia_consonantal",
-    nome: "Harmonia consonantal",
-    definicao:
-      "Um fonema da palavra é produzido com algum traço distintivo (ponto, modo ou vozeamento) presente em outra sílaba da palavra.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "plosivacao_fricativas",
-    nome: "Plosivação de fricativas",
-    definicao:
-      "Fonemas fricativos /f, v, s, z, ʃ, ʒ/ são substituídos por plosivos /p, b, t, d, k, g/.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "ensurdecimento_plosivas",
-    nome: "Ensurdecimento de plosivas",
-    definicao:
-      "Fonemas plosivos vozeados /b, d, g/ são substituídos por desvozeados /p, t, k/.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "ensurdecimento_fricativas",
-    nome: "Ensurdecimento de fricativas",
-    definicao:
-      "Fonemas fricativos vozeados /v, z, ʒ/ são substituídos por desvozeados /f, s, ʃ/.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "sonorizacao_plosivas",
-    nome: "Sonorização de plosivas",
-    definicao:
-      "Fonemas fricativos desvozeados /f, s, ʃ/ são produzidos como os vozeados /b, d, g/.",
-    idadeLimite: "2 anos e 2 meses",
-  },
-  {
-    id: "sonorizacao_fricativas",
-    nome: "Sonorização de fricativas",
-    definicao:
-      "Fonemas fricativos desvozeados /f, s, ʃ/ são substituídos por vozeados /v, z, ʒ/.",
-    idadeLimite: "2 anos e 6 meses",
-  },
-  {
-    id: "frontalizacao_velar",
-    nome: "Frontalização de velar",
-    definicao:
-      "Fonemas velares /k, g/ são substituídos por plosivos alveolares /t, d/.",
-    idadeLimite: "3 anos",
-  },
-  {
-    id: "posteriorizacao_velar",
-    nome: "Posteriorização para velar",
-    definicao:
-      "Fonemas plosivos alveolares /t, d/ são substituídos por velares /k, g/.",
-    idadeLimite: "3 anos e 6 meses",
-  },
-  {
-    id: "simplificacao_liquida",
-    nome: "Simplificação de líquida",
-    definicao:
-      "Fonemas líquidos /l, r, ʁ, ʎ/ são omitidos ou substituídos por outros líquidos.",
-    idadeLimite: "3 anos e 6 meses",
-  },
-  {
-    id: "frontalizacao_palatal",
-    nome: "Frontalização de palatal",
-    definicao:
-      "Fonemas palatais /ʃ, ʒ/ são substituídos por fricativos alveolares /s, z/.",
-    idadeLimite: "4 anos e 6 meses",
-  },
-  {
-    id: "posteriorizacao_palatal",
-    nome: "Posteriorização para palatal",
-    definicao:
-      "Fonemas fricativos alveolares /s, z/ são substituídos por palatais /ʃ, ʒ/.",
-    idadeLimite: "4 anos e 6 meses",
-  },
-  {
-    id: "simplificacao_consoante_final",
-    nome: "Simplificação da consoante final",
-    definicao:
-      "As consoantes /s/ ou /r/ são omitidas ou substituídas pela semivogal /j/ em posição final de sílaba.",
-    idadeLimite: "5 anos",
-  },
-  {
-    id: "simplificacao_encontro_consonantal",
-    nome: "Simplificação do encontro consonantal",
-    definicao:
-      "Os encontros consonantais com /r/ ou /l/ são omitidos ou substituídos.",
-    idadeLimite: "5 anos",
-  },
-  {
-    id: "outros",
-    nome: "Outros",
-    definicao:
-      "Processos fonológicos que não foram observados no desenvolvimento típico de linguagem.",
-    idadeLimite: null,
-  },
-];
-
-// Função de similaridade (Levenshtein Distance)
-function getSimilarity(s1, s2) {
-  if (!s1 || !s2) return 0;
-  s1 = s1.toLowerCase();
-  s2 = s2.toLowerCase();
-  const costs = [];
-  for (let i = 0; i <= s1.length; i++) {
-    let lastValue = i;
-    for (let j = 0; j <= s2.length; j++) {
-      if (i === 0) {
-        costs[j] = j;
-      } else if (j > 0) {
-        let newValue = costs[j - 1];
-        if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-          newValue = Math.min(newValue, lastValue, costs[j]) + 1;
-        }
-        costs[j - 1] = lastValue;
-        lastValue = newValue;
-      }
-    }
-    if (i > 0) {
-      costs[s2.length] = lastValue;
-    }
-  }
-  const distance = costs[s2.length];
-  const maxLength = Math.max(s1.length, s2.length);
-  return 1 - distance / maxLength;
-}
-
-// Função para analisar fonologicamente
-const analisarFono = (spoken, targetWord) => {
-  const spokenNormalized = spoken
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "");
-  const targetNormalized = targetWord.palavra
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "");
-
-  if (spokenNormalized === targetNormalized) {
-    return { tipo: "acerto", descricao: "A produção da palavra está adequada." };
-  }
-
-  if (targetWord.regrasErro) {
-    for (const regra of targetWord.regrasErro) {
-      const erroNormalized = regra.erro
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "");
-      if (spokenNormalized === erroNormalized) {
-        const processoEncontrado = PROCESSOS_FONOLOGICOS.find(
-          (p) => p.nome === regra.processo
-        );
-        return {
-          tipo: "erro_especifico",
-          processo: processoEncontrado || {
-            nome: regra.processo,
-            definicao: regra.descricao,
-            idadeLimite: regra.idadeEsperada,
-          },
-          descricao: regra.descricao,
-          ipaCorreto: regra.ipaCorreto,
-          ipaErro: regra.ipaErro,
-        };
-      }
-    }
-  }
-
-  return {
-    tipo: "nao_classificado",
-    descricao: "Erro de pronúncia não classificado.",
-  };
+  AAC: "AAC",
+  PROGRESS: "PROGRESS",
+  SETTINGS: "SETTINGS",
 };
 
 // ============================================================
 // COMPONENTE: HomeScreen
 // ============================================================
-function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo, onOpenAAC }) {
+function HomeScreen({
+  onStart,
+  modoFonoAtivo,
+  setModoFonoAtivo,
+  onOpenAAC,
+  onOpenProgress,
+  onOpenSettings,
+}) {
   return (
     <div className="home-container">
       <div className="home-header">
@@ -231,14 +71,14 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo, onOpenAAC }) {
 
           <button
             className="home-btn home-btn-progress"
-            onClick={() => alert("Meu Progresso — em breve!")}
+            onClick={onOpenProgress}
           >
             <span className="btn-icon">📊</span>
             <span className="btn-text">Meu Progresso</span>
           </button>
           <button
             className="home-btn home-btn-settings"
-            onClick={() => alert("Configurações — em breve!")}
+            onClick={onOpenSettings}
           >
             <span className="btn-icon">⚙️</span>
             <span className="btn-text">Configurações</span>
@@ -274,10 +114,18 @@ function HomeScreen({ onStart, modoFonoAtivo, setModoFonoAtivo, onOpenAAC }) {
 // ============================================================
 // COMPONENTE: CategoriesScreen
 // ============================================================
-function CategoriesScreen({ onBack, onSelectCategory }) {
+function CategoriesScreen({
+  onBack,
+  onSelectCategory,
+  ageYears,
+  ageMonths,
+  onAgeChange,
+  microphoneConsent,
+  onConsentChange,
+}) {
   const categories = [
     { id: "animais", emoji: "🦁", label: "Animais", colorClass: "category-animals" },
-    { id: "comida", emoji: "🍎", label: "Comida", colorClass: "category-food" },
+    { id: "comidas", emoji: "🍎", label: "Comida", colorClass: "category-food" },
     { id: "brinquedos", emoji: "🧸", label: "Brinquedos", colorClass: "category-toys" },
     { id: "casa", emoji: "🏠", label: "Casa", colorClass: "category-home" },
   ];
@@ -291,18 +139,65 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
         <h2 className="categories-title">Escolha uma Categoria</h2>
         <div className="placeholder-button"></div>
       </header>
+      <section className="child-profile-card" aria-labelledby="child-profile-title">
+        <h3 id="child-profile-title">Faixa etária</h3>
+        <p>Informe somente a idade. Não precisamos do nome nem da data de nascimento.</p>
+        <div className="age-fields">
+          <label>
+            Anos
+            <select
+              value={ageYears}
+              onChange={(event) => onAgeChange(Number(event.target.value), ageMonths)}
+            >
+              {Array.from({ length: 11 }, (_, value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Meses
+            <select
+              value={ageMonths}
+              onChange={(event) => onAgeChange(ageYears, Number(event.target.value))}
+            >
+              {Array.from({ length: 12 }, (_, value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <label className="microphone-consent">
+          <input
+            type="checkbox"
+            checked={microphoneConsent}
+            onChange={(event) => onConsentChange(event.target.checked)}
+          />
+          <span>
+            Sou responsável pela criança e autorizo o uso do microfone nesta sessão.
+            Dependendo do navegador, o áudio pode ser processado por um serviço externo.
+            O app não salva gravações.
+          </span>
+        </label>
+      </section>
       <main className="categories-grid">
         {categories.map((category) => (
           <button
             key={category.id}
             className={`category-card ${category.colorClass}`}
             onClick={() => onSelectCategory(category.id)}
+            disabled={!microphoneConsent}
+            aria-describedby={!microphoneConsent ? "category-consent-hint" : undefined}
           >
             <span className="category-emoji">{category.emoji}</span>
             <span className="category-label">{category.label}</span>
           </button>
         ))}
       </main>
+      {!microphoneConsent && (
+        <p id="category-consent-hint" className="consent-hint">
+          Confirme a autorização acima para iniciar uma atividade com microfone.
+        </p>
+      )}
     </div>
   );
 }
@@ -310,43 +205,36 @@ function CategoriesScreen({ onBack, onSelectCategory }) {
 // ============================================================
 // COMPONENTE: TrainingScreen
 // ============================================================
-function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFonoAtivo }) {
+function TrainingScreen({
+  categoriaSelecionada,
+  onBack,
+  modoFonoAtivo,
+  setModoFonoAtivo,
+  ageInMonths,
+  onAttempt,
+  onProfessionalNote,
+}) {
   const palavrasDaCategoria = WORDS.filter(
     (w) => w.categoria === categoriaSelecionada
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isSupported, setIsSupported] = useState(true);
+  const [isSupported, setIsSupported] = useState(
+    () => Boolean(window.SpeechRecognition || window.webkitSpeechRecognition)
+  );
   const [isListening, setIsListening] = useState(false);
   const [spokenText, setSpokenText] = useState("");
   const [feedback, setFeedback] = useState("");
   const [accuracy, setAccuracy] = useState(null);
   const [fonoInfo, setFonoInfo] = useState(null);
   const [showCongrats, setShowCongrats] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const [estrelasSessao, setEstrelasSessao] = useState(0);
+  const [palavrasPontuadas, setPalavrasPontuadas] = useState(() => new Set());
   const objetivoSessao = 5;
 
   const currentWord =
     palavrasDaCategoria[currentIndex % palavrasDaCategoria.length];
-
-  useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) setIsSupported(false);
-  }, []);
-
-  useEffect(() => {
-    setCurrentIndex(0);
-    resetState();
-    setEstrelasSessao(0);
-  }, [categoriaSelecionada]);
-
-  const resetState = () => {
-    setSpokenText("");
-    setFeedback("");
-    setAccuracy(null);
-    setFonoInfo(null);
-    setShowCongrats(false);
-  };
 
   function startListening() {
     const SpeechRecognition =
@@ -372,22 +260,43 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
       setSpokenText(transcript);
       const sim = getSimilarity(currentWord.palavra, transcript);
       setAccuracy(sim);
+      onAttempt({
+        wordId: currentWord.id,
+        palavra: currentWord.palavra,
+        categoria: currentWord.categoria,
+        transcricao: transcript,
+        similaridade: sim,
+        reconhecida: sim >= 0.85,
+      });
       if (sim >= 0.85) {
-        setFeedback("Parabéns! Pronúncia excelente! 🎉");
-        setEstrelasSessao((prevStars) => prevStars + 1);
+        setFeedback("Muito bem! O aplicativo reconheceu a palavra esperada. 🎉");
+        if (!palavrasPontuadas.has(currentWord.id)) {
+          setPalavrasPontuadas((previous) => {
+            const updated = new Set(previous);
+            updated.add(currentWord.id);
+            return updated;
+          });
+          setEstrelasSessao((previous) => Math.min(objetivoSessao, previous + 1));
+        }
         setShowCongrats(true);
       } else if (sim >= 0.6) {
-        setFeedback("Quase lá! Tente falar mais devagar.");
+        setFeedback("O reconhecedor encontrou uma palavra parecida. Tente novamente com calma.");
       } else {
-        setFeedback("Vamos tentar de novo, tudo bem?");
+        setFeedback("O aplicativo não reconheceu a palavra desta vez. Isso pode ser uma limitação do microfone ou do reconhecedor.");
       }
       if (modoFonoAtivo) {
-        const analise = analisarFono(transcript, currentWord);
+        const analise = analyzeTranscription(transcript, currentWord);
         setFonoInfo(analise);
       }
     };
-    recognition.onerror = () => {
-      setFeedback("Erro ao escutar. Tente novamente.");
+    recognition.onerror = (event) => {
+      const message =
+        event.error === "not-allowed"
+          ? "O acesso ao microfone foi bloqueado. Libere a permissão no navegador."
+          : event.error === "no-speech"
+          ? "Não detectamos fala. Tente novamente em um lugar mais silencioso."
+          : "Não foi possível usar o reconhecimento de voz. Tente novamente.";
+      setFeedback(message);
       setIsListening(false);
     };
     recognition.onend = () => {
@@ -402,6 +311,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
     setAccuracy(null);
     setFeedback("");
     setFonoInfo(null);
+    setImageFailed(false);
     setCurrentIndex((prev) =>
       prev + 1 < palavrasDaCategoria.length ? prev + 1 : 0
     );
@@ -413,6 +323,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
     setAccuracy(null);
     setFeedback("");
     setFonoInfo(null);
+    setImageFailed(false);
     setCurrentIndex((prev) =>
       prev - 1 >= 0 ? prev - 1 : palavrasDaCategoria.length - 1
     );
@@ -420,7 +331,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
 
   const categoriaNome = {
     animais: "Animais",
-    comida: "Comida",
+    comidas: "Comida",
     brinquedos: "Brinquedos",
     casa: "Casa",
   };
@@ -483,9 +394,24 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
             </p>
           </div>
 
-          {currentWord.imagemUrl && (
+          {(currentWord.imagemUrl || currentWord.emoji) && (
             <div className="training-image-wrapper">
-              <img src={currentWord.imagemUrl} alt={currentWord.palavra} className="training-image" />
+              {currentWord.imagemUrl && !imageFailed ? (
+                <img
+                  src={currentWord.imagemUrl}
+                  alt={currentWord.palavra}
+                  className="training-image"
+                  onError={() => setImageFailed(true)}
+                />
+              ) : (
+                <span
+                  className="training-image-fallback"
+                  role="img"
+                  aria-label={currentWord.palavra}
+                >
+                  {currentWord.emoji || "🖼️"}
+                </span>
+              )}
             </div>
           )}
 
@@ -499,6 +425,7 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
                 utterance.lang = "pt-BR";
                 speechSynthesis.speak(utterance);
               }}
+              aria-label={`Ouvir a palavra ${currentWord.palavra}`}
             >
               🔊
             </button>
@@ -506,18 +433,19 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
               className={`mic-button ${isListening ? "mic-button-listening" : ""}`}
               onClick={startListening}
               disabled={!isSupported || isListening}
+              aria-label={isListening ? "Ouvindo" : "Falar a palavra"}
             >
               🎙️
             </button>
           </div>
 
-          <div className="training-result-box">
+          <div className="training-result-box" aria-live="polite">
             <p className="training-result-line">
               <strong>Você disse:</strong> {spokenText || "—"}
             </p>
             {accuracy !== null && (
               <p className="training-result-line">
-                <strong>Similaridade:</strong> {(accuracy * 100).toFixed(0)}%
+                <strong>Semelhança da transcrição:</strong> {(accuracy * 100).toFixed(0)}%
               </p>
             )}
             {feedback && <p className="training-feedback">{feedback}</p>}
@@ -546,6 +474,15 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
                   </p>
                 )}
                 {fonoInfo.descricao && <p><strong>Resumo:</strong> {fonoInfo.descricao}</p>}
+                {getAgeGuidance(ageInMonths, fonoInfo.processo) && (
+                  <p className="age-guidance">
+                    <strong>Orientação por idade:</strong>{" "}
+                    {getAgeGuidance(ageInMonths, fonoInfo.processo)}
+                  </p>
+                )}
+                <p className="clinical-disclaimer">
+                  Resultado orientativo baseado na transcrição automática. Não substitui avaliação fonoaudiológica.
+                </p>
               </div>
             )}
           </div>
@@ -554,13 +491,21 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
             <button className="nav-pill nav-pill-left" onClick={previousWord}>◀ Anterior</button>
             <button className="nav-pill nav-pill-right" onClick={nextWord}>Próxima ▶</button>
           </div>
+
+          {modoFonoAtivo && (
+            <ProfessionalReview
+              key={currentWord.id}
+              word={currentWord}
+              onSave={onProfessionalNote}
+            />
+          )}
         </main>
 
         {showCongrats && (
-          <div className="congrats-overlay">
-            <div className="congrats-card">
+          <div className="congrats-overlay" role="presentation">
+            <div className="congrats-card" role="dialog" aria-modal="true" aria-labelledby="congrats-title">
               <div className="congrats-star">⭐</div>
-              <h2 className="congrats-title">Muito bem!</h2>
+              <h2 id="congrats-title" className="congrats-title">Muito bem!</h2>
               <p className="congrats-word">{currentWord.palavra.toUpperCase()}</p>
               <p className="congrats-sub">
                 Você já tem {estrelasSessao} de {objetivoSessao} estrelas nesta sessão!
@@ -575,10 +520,104 @@ function TrainingScreen({ categoriaSelecionada, onBack, modoFonoAtivo, setModoFo
 }
 
 
+function ProgressScreen({ attempts, professionalNotes, onBack, onClear }) {
+  const recognized = attempts.filter((attempt) => attempt.reconhecida).length;
+  const average =
+    attempts.length === 0
+      ? 0
+      : attempts.reduce((sum, attempt) => sum + attempt.similaridade, 0) /
+        attempts.length;
+  const recentAttempts = attempts.slice(-10).reverse();
+
+  return (
+    <div className="progress-container">
+      <header className="progress-header">
+        <button className="icon-button" onClick={onBack} title="Início">
+          🏠
+        </button>
+        <h2>Progresso desta sessão</h2>
+        <div className="placeholder-button" />
+      </header>
+
+      <main className="progress-content">
+        <section className="progress-summary" aria-label="Resumo da sessão">
+          <div className="progress-stat">
+            <strong>{attempts.length}</strong>
+            <span>Tentativas</span>
+          </div>
+          <div className="progress-stat">
+            <strong>{recognized}</strong>
+            <span>Reconhecidas</span>
+          </div>
+          <div className="progress-stat">
+            <strong>{Math.round(average * 100)}%</strong>
+            <span>Semelhança média</span>
+          </div>
+          <div className="progress-stat">
+            <strong>{professionalNotes.length}</strong>
+            <span>Registros manuais</span>
+          </div>
+        </section>
+
+        <p className="progress-explanation">
+          Estes números mostram apenas como o reconhecedor automático transcreveu
+          as tentativas. Eles não representam nota, diagnóstico ou evolução clínica.
+        </p>
+
+        {recentAttempts.length > 0 ? (
+          <>
+            <h3>Últimas tentativas</h3>
+            <ul className="progress-list">
+              {recentAttempts.map((attempt) => (
+                <li key={attempt.id}>
+                  <span>
+                    <strong>{attempt.palavra}</strong>
+                    <small>Transcrição: {attempt.transcricao}</small>
+                  </span>
+                  <span className={attempt.reconhecida ? "recognized" : "try-again"}>
+                    {Math.round(attempt.similaridade * 100)}%
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button className="progress-clear" onClick={onClear}>
+              Limpar dados desta sessão
+            </button>
+          </>
+        ) : (
+          <p className="progress-empty">
+            Ainda não há tentativas nesta sessão. Escolha uma categoria e experimente
+            uma palavra.
+          </p>
+        )}
+
+        {professionalNotes.length > 0 && (
+          <section className="professional-notes-summary">
+            <h3>Registros profissionais</h3>
+            <ul>
+              {professionalNotes.slice(-10).reverse().map((note) => (
+                <li key={note.id}>
+                  <strong>{note.palavra}</strong>
+                  <span>{note.classification.replaceAll("_", " ")}</span>
+                  {note.notes && <small>{note.notes}</small>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </main>
+    </div>
+  );
+}
+
 // ============================================================
-// COMPONENTE: App Raiz
+// COMPONENTE: AACScreen — Comunicação Alternativa
+// ============================================================
+// ============================================================
+// COMPONENTE: AACScreen — Comunicação Alternativa com Níveis
 // ============================================================
 function AACScreen({ onBack }) {
+  const [nivel, setNivel] = useState(1); // 1, 2 ou 3
   const [contexto, setContexto] = useState("geral");
   const [categoriaSelecionada, setCategoriaSelecionada] = useState("quem");
   const [slotsSelecionados, setSlotsSelecionados] = useState({
@@ -587,14 +626,14 @@ function AACScreen({ onBack }) {
     complemento: null,
   });
 
-  // Filtra símbolos pelo contexto atual
-  const simbolosFiltrados = AAC_SYMBOLS.filter(
-    (s) => s.contexto === contexto && s.categoria === categoriaSelecionada
+  const simbolosDaCategoria = AAC_SYMBOLS.filter(
+    (s) =>
+      s.categoria === categoriaSelecionada &&
+      (s.contexto === "geral" || s.contexto === contexto)
   );
-
-  // Atalhos válidos para o contexto (por enquanto todos "geral")
-  const atalhosContexto = AAC_ATALHOS.filter(
-    (a) => a.contexto === "geral" || a.contexto === contexto
+  const atalhosDoContexto = AAC_ATALHOS.filter(
+    (shortcut) =>
+      shortcut.contexto === "geral" || shortcut.contexto === contexto
   );
 
   const falar = (texto) => {
@@ -604,47 +643,116 @@ function AACScreen({ onBack }) {
     window.speechSynthesis.speak(u);
   };
 
-  const handleSymbolClick = (simbolo) => {
-    if (simbolo.slot) {
-      setSlotsSelecionados((prev) => ({
-        ...prev,
-        [simbolo.slot]: simbolo,
-      }));
-    }
-    falar(simbolo.fala || simbolo.texto);
-  };
-
   const limparTudo = () => {
     setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
   };
 
   const falarFraseCompleta = () => {
-    const partes = AAC_SLOTS.map((slot) => {
-      const s = slotsSelecionados[slot];
-      return s ? (s.fala || s.texto) : null;
-    }).filter(Boolean);
+    // Nível 1: não tem slots, então não faz nada especial aqui
+    if (nivel === 1) return;
 
-    if (partes.length === 0) return;
+    // Nível 2: QUEM + COMPLEMENTO, verbo implícito
+    if (nivel === 2) {
+      const quem = slotsSelecionados.quem;
+      const comp = slotsSelecionados.complemento;
+      if (!comp && !quem) return;
 
-    // Regra: se só tiver um complemento (ex: "água"), podemos falar frase completa
-    if (partes.length === 1 && slotsSelecionados.complemento && !slotsSelecionados.quem && !slotsSelecionados.verbo) {
-      falar(`Eu quero ${slotsSelecionados.complemento.fala || slotsSelecionados.complemento.texto}`);
+      // Se só complemento: "Eu quero água"
+      if (comp && !quem) {
+        falar(`Eu quero ${comp.fala || comp.texto}`);
+        return;
+      }
+
+      // Se tem quem e complemento: "Eu quero brincar", "Eu estou triste" (dá pra ajustar depois)
+      if (quem && comp) {
+        falar(`${quem.fala || quem.texto} quer ${comp.fala || comp.texto}`);
+        return;
+      }
+
       return;
     }
 
-    falar(partes.join(" "));
+    // Nível 3: usa os 3 slots (modelo atual)
+    if (nivel === 3) {
+      const partes = AAC_SLOTS.map((slot) => {
+        const s = slotsSelecionados[slot];
+        return s ? (s.fala || s.texto) : null;
+      }).filter(Boolean);
+
+      if (partes.length === 0) return;
+
+      // Se só complemento: completa com "Eu quero ..."
+      if (
+        partes.length === 1 &&
+        slotsSelecionados.complemento &&
+        !slotsSelecionados.quem &&
+        !slotsSelecionados.verbo
+      ) {
+        falar(
+          `Eu quero ${
+            slotsSelecionados.complemento.fala ||
+            slotsSelecionados.complemento.texto
+          }`
+        );
+        return;
+      }
+
+      falar(partes.join(" "));
+    }
+  };
+
+  const handleSymbolClick = (simbolo) => {
+    // NÍVEL 1 — símbolo sozinho fala frase pronta
+    if (nivel === 1) {
+      // se no futuro você quiser, pode ter campo fala_sozinho em cada símbolo
+      const frase =
+        simbolo.fala_sozinho ||
+        simbolo.fala ||
+        simbolo.texto;
+      falar(frase);
+      return;
+    }
+
+    // NÍVEL 2 — QUEM + COMPLEMENTO (verbo implícito)
+    if (nivel === 2) {
+      if (!simbolo.slot) {
+        falar(simbolo.fala || simbolo.texto);
+        return;
+      }
+
+      // só permite preencher quem e complemento
+      if (simbolo.slot === "verbo") {
+        // verbo não é usado no nível 2
+        falar(simbolo.fala || simbolo.texto);
+        return;
+      }
+
+      setSlotsSelecionados((prev) => ({
+        ...prev,
+        [simbolo.slot]: simbolo,
+      }));
+
+      // feedback imediato
+      falar(simbolo.fala || simbolo.texto);
+      return;
+    }
+
+    // NÍVEL 3 — QUEM + VERBO + COMPLEMENTO (como já era)
+    if (nivel === 3) {
+      if (simbolo.slot) {
+        setSlotsSelecionados((prev) => ({
+          ...prev,
+          [simbolo.slot]: simbolo,
+        }));
+      }
+      falar(simbolo.fala || simbolo.texto);
+    }
   };
 
   const temAlgoSelecionado =
     slotsSelecionados.quem ||
     slotsSelecionados.verbo ||
     slotsSelecionados.complemento;
-
-  const handleAtalhoClick = (atalho) => {
-    falar(atalho.fala);
-    // Opcional: você pode preencher slots automaticamente, se fizer sentido
-    // ex: "quero_parar" -> quem=eu, verbo=quero, complemento=parar
-  };
 
   return (
     <div className="aac-container">
@@ -657,81 +765,134 @@ function AACScreen({ onBack }) {
         <div className="placeholder-button"></div>
       </header>
 
-      {/* CONTEXTO: Terapia / Casa / Escola / Geral */}
-      <div className="aac-context-bar">
-        {AAC_CONTEXTS.map((ctx) => (
+      <nav className="aac-context-bar" aria-label="Contexto da comunicação">
+        {AAC_CONTEXTS.map((context) => (
           <button
-            key={ctx.id}
+            key={context.id}
             className={`aac-context-btn ${
-              contexto === ctx.id ? "active" : ""
+              contexto === context.id ? "active" : ""
             }`}
+            aria-pressed={contexto === context.id}
             onClick={() => {
-              setContexto(ctx.id);
+              setContexto(context.id);
               setCategoriaSelecionada("quem");
-              setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
+              limparTudo();
             }}
           >
-            <span className="aac-context-emoji">{ctx.emoji}</span>
-            <span className="aac-context-label">{ctx.label}</span>
+            <span className="aac-context-emoji" aria-hidden="true">
+              {context.emoji}
+            </span>
+            <span className="aac-context-label">{context.label}</span>
           </button>
         ))}
+      </nav>
+
+      <section className="aac-atalhos-bar" aria-label="Frases rápidas">
+        {atalhosDoContexto.map((shortcut) => (
+          <button
+            key={shortcut.id}
+            className="aac-atalho-card"
+            onClick={() => falar(shortcut.fala)}
+          >
+            <span className="aac-atalho-emoji" aria-hidden="true">
+              {shortcut.emoji}
+            </span>
+            <span className="aac-atalho-label">{shortcut.label}</span>
+          </button>
+        ))}
+      </section>
+
+      {/* Seletor de Nível */}
+      <div className="aac-level-bar">
+        <span className="aac-level-label">Nível:</span>
+        <button
+          className={`aac-level-btn ${nivel === 1 ? "active" : ""}`}
+          aria-label="Nível 1: símbolo único"
+          aria-pressed={nivel === 1}
+          onClick={() => {
+            setNivel(1);
+            limparTudo();
+          }}
+        >
+          1
+        </button>
+        <button
+          className={`aac-level-btn ${nivel === 2 ? "active" : ""}`}
+          aria-label="Nível 2: quem e complemento"
+          aria-pressed={nivel === 2}
+          onClick={() => {
+            setNivel(2);
+            limparTudo();
+          }}
+        >
+          2
+        </button>
+        <button
+          className={`aac-level-btn ${nivel === 3 ? "active" : ""}`}
+          aria-label="Nível 3: frase completa"
+          aria-pressed={nivel === 3}
+          onClick={() => {
+            setNivel(3);
+            limparTudo();
+          }}
+        >
+          3
+        </button>
       </div>
 
-      {/* ATALHOS FUNDAMENTAIS */}
-<div className="aac-atalhos-bar">
-  {atalhosContexto.map((atalho) => (
-    <button
-      key={atalho.id}
-      className="aac-atalho-card"
-      onClick={() => handleAtalhoClick(atalho)}
-    >
-      <span className="aac-atalho-emoji">{atalho.emoji}</span>
-      <span className="aac-atalho-label">{atalho.label}</span>
-    </button>
-  ))}
-</div>
-      {/* Barra de frase com 3 slots */}
-      <div className="aac-phrase-bar">
-        <p className="aac-phrase-bar-label">Monte sua frase:</p>
-        <div className="aac-phrase-slots">
-          {AAC_SLOTS.map((slot) => {
-            const s = slotsSelecionados[slot];
-            const label =
-              slot === "quem" ? "👤 Quem?" :
-              slot === "verbo" ? "⚙️ Verbo" : "💬 O quê?";
-            return (
-              <div key={slot} className={`aac-slot ${s ? "aac-slot-filled" : ""}`}>
-                <span className="aac-slot-label">{label}</span>
-                {s ? (
-                  <div className="aac-slot-token">
-                    <span className="aac-slot-emoji">{s.emoji}</span>
-                    <span className="aac-slot-text">{s.texto}</span>
-                  </div>
-                ) : (
-                  <div className="aac-slot-empty">—</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {/* Barra de frase com slots – só no nível 2 e 3 */}
+      {nivel > 1 && (
+        <div className="aac-phrase-bar">
+          <p className="aac-phrase-bar-label">Monte sua frase:</p>
+          <div className="aac-phrase-slots">
+            {AAC_SLOTS.map((slot) => {
+              // no nível 2, ignoramos o slot verbo visualmente
+              if (nivel === 2 && slot === "verbo") return null;
 
-        <div className="aac-phrase-actions">
-          <button
-            className="aac-action-btn aac-btn-clear"
-            onClick={limparTudo}
-            disabled={!temAlgoSelecionado}
-          >
-            🗑️ Limpar
-          </button>
-          <button
-            className="aac-action-btn aac-btn-speak"
-            onClick={falarFraseCompleta}
-            disabled={!temAlgoSelecionado}
-          >
-            🔊 Falar frase
-          </button>
+              const s = slotsSelecionados[slot];
+              const label =
+                slot === "quem"
+                  ? "👤 Quem?"
+                  : slot === "verbo"
+                  ? "⚙️ Verbo"
+                  : "💬 O quê?";
+              return (
+                <div
+                  key={slot}
+                  className={`aac-slot ${s ? "aac-slot-filled" : ""}`}
+                >
+                  <span className="aac-slot-label">{label}</span>
+                  {s ? (
+                    <div className="aac-slot-token">
+                      <span className="aac-slot-emoji">{s.emoji}</span>
+                      <span className="aac-slot-text">{s.texto}</span>
+                    </div>
+                  ) : (
+                    <div className="aac-slot-empty">—</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="aac-phrase-actions">
+            <button
+              className="aac-action-btn aac-btn-clear"
+              onClick={limparTudo}
+              disabled={!temAlgoSelecionado}
+            >
+              🗑️ Limpar
+            </button>
+            <button
+              className="aac-action-btn aac-btn-speak"
+              onClick={falarFraseCompleta}
+              disabled={!temAlgoSelecionado}
+            >
+              🔊 Falar frase
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Abas de categorias */}
       <div className="aac-categories-bar">
@@ -741,6 +902,7 @@ function AACScreen({ onBack }) {
             className={`aac-cat-btn ${
               categoriaSelecionada === cat.id ? "active" : ""
             }`}
+            aria-pressed={categoriaSelecionada === cat.id}
             onClick={() => setCategoriaSelecionada(cat.id)}
           >
             <span className="aac-cat-emoji">{cat.emoji}</span>
@@ -751,7 +913,7 @@ function AACScreen({ onBack }) {
 
       {/* Grid de símbolos */}
       <main className="aac-symbols-grid">
-        {simbolosFiltrados.map((simbolo) => (
+        {simbolosDaCategoria.map((simbolo) => (
           <button
             key={simbolo.id}
             className={`aac-symbol-card ${
@@ -765,11 +927,6 @@ function AACScreen({ onBack }) {
             <span className="aac-symbol-label">{simbolo.texto}</span>
           </button>
         ))}
-        {simbolosFiltrados.length === 0 && (
-          <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#555" }}>
-            Nenhum símbolo para este contexto ainda.
-          </p>
-        )}
       </main>
     </div>
   );
@@ -779,6 +936,11 @@ function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
   const [modoFonoAtivo, setModoFonoAtivo] = useState(false);
+  const [ageYears, setAgeYears] = useState(4);
+  const [ageMonths, setAgeMonths] = useState(0);
+  const [microphoneConsent, setMicrophoneConsent] = useState(false);
+  const [sessionAttempts, setSessionAttempts] = useState([]);
+  const [professionalNotes, setProfessionalNotes] = useState([]);
 
 if (screen === SCREEN.HOME) {
   return (
@@ -787,6 +949,8 @@ if (screen === SCREEN.HOME) {
       modoFonoAtivo={modoFonoAtivo}
       setModoFonoAtivo={setModoFonoAtivo}
       onOpenAAC={() => setScreen(SCREEN.AAC)}
+      onOpenProgress={() => setScreen(SCREEN.PROGRESS)}
+      onOpenSettings={() => setScreen(SCREEN.SETTINGS)}
     />
   );
 }
@@ -795,6 +959,14 @@ if (screen === SCREEN.HOME) {
     return (
       <CategoriesScreen
         onBack={() => setScreen(SCREEN.HOME)}
+        ageYears={ageYears}
+        ageMonths={ageMonths}
+        microphoneConsent={microphoneConsent}
+        onConsentChange={setMicrophoneConsent}
+        onAgeChange={(years, months) => {
+          setAgeYears(years);
+          setAgeMonths(months);
+        }}
         onSelectCategory={(cat) => {
           setCategoriaSelecionada(cat);
           setScreen(SCREEN.TRAINING);
@@ -810,12 +982,55 @@ if (screen === SCREEN.HOME) {
         onBack={() => setScreen(SCREEN.CATEGORIES)}
         modoFonoAtivo={modoFonoAtivo}
         setModoFonoAtivo={setModoFonoAtivo}
+        ageInMonths={ageYears * 12 + ageMonths}
+        onAttempt={(attempt) =>
+          setSessionAttempts((previous) => [
+            ...previous,
+            {
+              ...attempt,
+              id: `${Date.now()}-${previous.length}`,
+            },
+          ])
+        }
+        onProfessionalNote={(note) =>
+          setProfessionalNotes((previous) => [
+            ...previous,
+            {
+              ...note,
+              id: `${Date.now()}-${previous.length}`,
+            },
+          ])
+        }
       />
     );
   }
 
   if (screen === SCREEN.AAC) {
     return <AACScreen onBack={() => setScreen(SCREEN.HOME)} />;
+  }
+
+  if (screen === SCREEN.PROGRESS) {
+    return (
+      <ProgressScreen
+        attempts={sessionAttempts}
+        professionalNotes={professionalNotes}
+        onBack={() => setScreen(SCREEN.HOME)}
+        onClear={() => {
+          setSessionAttempts([]);
+          setProfessionalNotes([]);
+        }}
+      />
+    );
+  }
+
+  if (screen === SCREEN.SETTINGS) {
+    return (
+      <SettingsScreen
+        modoFonoAtivo={modoFonoAtivo}
+        onFonoModeChange={setModoFonoAtivo}
+        onBack={() => setScreen(SCREEN.HOME)}
+      />
+    );
   }
 
   return null;
