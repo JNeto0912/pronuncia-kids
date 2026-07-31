@@ -1182,6 +1182,160 @@
   transform: translateY(-1px);
 }
 
+.technical-analysis {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 2px solid #8aa4c0;
+  border-radius: 16px;
+  background: #f7fbff;
+  color: #1d2b38;
+  text-align: left;
+}
+
+.technical-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.technical-header h3 {
+  margin: 0.15rem 0 0;
+  color: #183f63;
+  font-size: 1.1rem;
+}
+
+.technical-eyebrow {
+  color: #526d82;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.technical-status {
+  max-width: 220px;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.technical-status.positive {
+  background: #d9f5e0;
+  color: #17652c;
+}
+
+.technical-status.attention {
+  background: #fff0c2;
+  color: #765000;
+}
+
+.technical-status.neutral {
+  background: #e6ebef;
+  color: #44515c;
+}
+
+.technical-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.technical-card,
+.technical-process dl {
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.technical-card {
+  padding: 0.8rem;
+  border: 1px solid #cbd9e5;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.technical-card div,
+.technical-process dl div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.technical-card dt,
+.technical-process dt {
+  color: #5b7184;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.technical-card dd,
+.technical-process dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.technical-process {
+  margin-top: 0.8rem;
+  padding: 0.85rem;
+  border-left: 5px solid #6750a4;
+  border-radius: 10px;
+  background: #f3efff;
+}
+
+.technical-process h4 {
+  margin: 0 0 0.7rem;
+  color: #4d3785;
+}
+
+.technical-ipa {
+  font-family: "Noto Sans", "Segoe UI", sans-serif;
+  font-size: 1.05rem;
+}
+
+.technical-summary,
+.technical-age,
+.technical-limit {
+  margin: 0.75rem 0 0;
+  padding: 0.7rem;
+  border-radius: 10px;
+  line-height: 1.45;
+}
+
+.technical-summary {
+  background: #edf5fb;
+}
+
+.technical-age {
+  background: #fff8db;
+}
+
+.technical-limit {
+  border: 1px dashed #a66b52;
+  background: #fff4ee;
+  color: #5f3424;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 600px) {
+  .technical-header {
+    display: grid;
+  }
+
+  .technical-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .technical-status {
+    max-width: none;
+  }
+}
+
 .training-image-fallback {
   width: 100%;
   min-height: 180px;

@@ -10,10 +10,10 @@ import {
 } from "./data/symbols";
 import {
   analyzeTranscription,
-  getAgeGuidance,
   getSimilarity,
 } from "./domain/speechAnalysis";
 import ProfessionalReview from "./components/ProfessionalReview";
+import TechnicalAnalysis from "./components/TechnicalAnalysis";
 import SettingsScreen from "./screens/SettingsScreen";
 
 const SCREEN = {
@@ -226,6 +226,7 @@ function TrainingScreen({
   const [spokenText, setSpokenText] = useState("");
   const [feedback, setFeedback] = useState("");
   const [accuracy, setAccuracy] = useState(null);
+  const [recognitionConfidence, setRecognitionConfidence] = useState(null);
   const [fonoInfo, setFonoInfo] = useState(null);
   const [showCongrats, setShowCongrats] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
@@ -251,13 +252,16 @@ function TrainingScreen({
     setIsListening(true);
     setSpokenText("");
     setAccuracy(null);
+    setRecognitionConfidence(null);
     setFeedback("");
     setShowCongrats(false);
     setFonoInfo(null);
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript.trim();
+      const recognitionResult = event.results[0][0];
+      const transcript = recognitionResult.transcript.trim();
       setSpokenText(transcript);
+      setRecognitionConfidence(recognitionResult.confidence || null);
       const sim = getSimilarity(currentWord.palavra, transcript);
       setAccuracy(sim);
       onAttempt({
@@ -309,6 +313,7 @@ function TrainingScreen({
     setShowCongrats(false);
     setSpokenText("");
     setAccuracy(null);
+    setRecognitionConfidence(null);
     setFeedback("");
     setFonoInfo(null);
     setImageFailed(false);
@@ -321,6 +326,7 @@ function TrainingScreen({
     setShowCongrats(false);
     setSpokenText("");
     setAccuracy(null);
+    setRecognitionConfidence(null);
     setFeedback("");
     setFonoInfo(null);
     setImageFailed(false);
@@ -451,39 +457,14 @@ function TrainingScreen({
             {feedback && <p className="training-feedback">{feedback}</p>}
 
             {modoFonoAtivo && fonoInfo && (
-              <div className="fono-box">
-                <p><strong>Análise fonoaudiológica:</strong></p>
-                {fonoInfo.processo ? (
-                  <>
-                    <p><strong>Processo:</strong> {fonoInfo.processo.nome}</p>
-                    <p><strong>Definição:</strong> {fonoInfo.processo.definicao}</p>
-                    {fonoInfo.processo.idadeLimite && (
-                      <p><strong>Idade esperada de eliminação:</strong> {fonoInfo.processo.idadeLimite}</p>
-                    )}
-                    {fonoInfo.ipaCorreto && <p><strong>IPA Correto:</strong> {fonoInfo.ipaCorreto}</p>}
-                    {fonoInfo.ipaErro && <p><strong>IPA Erro:</strong> {fonoInfo.ipaErro}</p>}
-                  </>
-                ) : (
-                  <p>
-                    <strong>Tipo:</strong>{" "}
-                    {fonoInfo.tipo === "acerto"
-                      ? "Produção adequada ✅"
-                      : fonoInfo.tipo === "nao_classificado"
-                      ? "Erro não classificado"
-                      : fonoInfo.tipo}
-                  </p>
-                )}
-                {fonoInfo.descricao && <p><strong>Resumo:</strong> {fonoInfo.descricao}</p>}
-                {getAgeGuidance(ageInMonths, fonoInfo.processo) && (
-                  <p className="age-guidance">
-                    <strong>Orientação por idade:</strong>{" "}
-                    {getAgeGuidance(ageInMonths, fonoInfo.processo)}
-                  </p>
-                )}
-                <p className="clinical-disclaimer">
-                  Resultado orientativo baseado na transcrição automática. Não substitui avaliação fonoaudiológica.
-                </p>
-              </div>
+              <TechnicalAnalysis
+                targetWord={currentWord}
+                spokenText={spokenText}
+                similarity={accuracy}
+                recognitionConfidence={recognitionConfidence}
+                analysis={fonoInfo}
+                ageInMonths={ageInMonths}
+              />
             )}
           </div>
 

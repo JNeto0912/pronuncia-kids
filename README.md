@@ -40,3 +40,5 @@ npm run build
 As referências etárias e regras fonológicas devem ser revisadas e versionadas por profissional habilitado antes de uso fora de ambiente de protótipo.
 
 O progresso e as observações profissionais desta versão existem somente durante a sessão atual e são removidos quando a página é recarregada.
+
+No Modo Fono, o painel técnico separa os dados do reconhecedor (transcrição, semelhança ortográfica e confiança fornecida pela API) das variantes e processos cadastrados. A classificação automática continua sendo orientativa e deve ser confirmada pelo profissional.

@@ -62,6 +62,43 @@ export function getAgeGuidance(ageInMonths, process) {
   return "A idade informada está acima da referência cadastrada para este processo. Uma ocorrência isolada não fecha diagnóstico; procure avaliação fonoaudiológica se isso for frequente.";
 }
 
+export function formatAgeInMonths(ageInMonths) {
+  if (!Number.isFinite(ageInMonths) || ageInMonths < 0) return "Não informada";
+  const years = Math.floor(ageInMonths / 12);
+  const months = ageInMonths % 12;
+  return `${years}a ${months}m`;
+}
+
+export function getTechnicalStatus(analysis) {
+  if (!analysis) {
+    return { code: "sem_dados", label: "Sem dados", tone: "neutral" };
+  }
+  if (analysis.tipo === "acerto") {
+    return {
+      code: "correspondencia_alvo",
+      label: "Transcrição correspondente ao alvo",
+      tone: "positive",
+    };
+  }
+  if (analysis.tipo === "erro_especifico") {
+    return {
+      code: "variante_cadastrada",
+      label: "Correspondência com variante cadastrada",
+      tone: "attention",
+    };
+  }
+  return {
+    code: "nao_classificada",
+    label: "Transcrição não classificada",
+    tone: "neutral",
+  };
+}
+
+export function formatRecognitionConfidence(confidence) {
+  if (!Number.isFinite(confidence) || confidence <= 0) return "Não fornecida";
+  return `${Math.round(confidence * 100)}%`;
+}
+
 function findRegisteredProcess(processName) {
   const normalizedName = normalizeText(processName);
   return PHONOLOGICAL_PROCESSES.find(
