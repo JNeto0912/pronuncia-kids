@@ -15,6 +15,10 @@ import {
 import ProfessionalReview from "./components/ProfessionalReview";
 import TechnicalAnalysis from "./components/TechnicalAnalysis";
 import SettingsScreen from "./screens/SettingsScreen";
+import {
+  buildSessionReport,
+  getProfessionalLabel,
+} from "./domain/sessionReport";
 
 const SCREEN = {
   HOME: "HOME",
@@ -481,6 +485,11 @@ function TrainingScreen({
             <ProfessionalReview
               key={currentWord.id}
               word={currentWord}
+              automaticContext={{
+                transcription: spokenText,
+                similarity: accuracy,
+                recognitionConfidence,
+              }}
               onSave={onProfessionalNote}
             />
           )}
@@ -505,7 +514,14 @@ function TrainingScreen({
 }
 
 
-function ProgressScreen({ attempts, professionalNotes, professionalMode, onBack, onClear }) {
+function ProgressScreen({
+  attempts,
+  professionalNotes,
+  professionalMode,
+  ageInMonths,
+  onBack,
+  onClear,
+}) {
   const recognized = attempts.filter((attempt) => attempt.reconhecida).length;
   const average =
     attempts.length === 0
@@ -514,6 +530,24 @@ function ProgressScreen({ attempts, professionalNotes, professionalMode, onBack,
         attempts.length;
   const recentAttempts = attempts.slice(-10).reverse();
   const practicedWords = new Set(attempts.map((attempt) => attempt.wordId)).size;
+
+  function exportSessionReport() {
+    const report = buildSessionReport({
+      attempts,
+      professionalNotes,
+      ageInMonths,
+    });
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `pronuncia-kids-sessao-${date}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="progress-container">
@@ -579,6 +613,11 @@ function ProgressScreen({ attempts, professionalNotes, professionalMode, onBack,
             <button className="progress-clear" onClick={onClear}>
               Limpar dados desta sessão
             </button>
+            {professionalMode && (
+              <button className="progress-export" onClick={exportSessionReport}>
+                Exportar ficha da sessão (.json)
+              </button>
+            )}
           </>
         ) : (
           <p className="progress-empty">
@@ -594,7 +633,22 @@ function ProgressScreen({ attempts, professionalNotes, professionalMode, onBack,
               {professionalNotes.slice(-10).reverse().map((note) => (
                 <li key={note.id}>
                   <strong>{note.palavra}</strong>
-                  <span>{note.classification.replaceAll("_", " ")}</span>
+                  <span>{getProfessionalLabel(note.classification)}</span>
+                  <small>
+                    {getProfessionalLabel(note.elicitation)}
+                    {note.soundPosition
+                      ? ` • posição ${getProfessionalLabel(note.soundPosition).toLowerCase()}`
+                      : ""}
+                  </small>
+                  {note.perceivedProduction && (
+                    <small>Produção percebida: {note.perceivedProduction}</small>
+                  )}
+                  {note.automaticTranscription && (
+                    <small>Transcrição automática vinculada: {note.automaticTranscription}</small>
+                  )}
+                  <small>
+                    Estimulabilidade: {getProfessionalLabel(note.stimulability)} • Consistência: {getProfessionalLabel(note.consistency)} • Inteligibilidade: {getProfessionalLabel(note.intelligibility)}
+                  </small>
                   {note.notes && <small>{note.notes}</small>}
                 </li>
               ))}
@@ -1030,6 +1084,11 @@ if (screen === SCREEN.HOME) {
         attempts={sessionAttempts}
         professionalNotes={professionalNotes}
         professionalMode={modoFonoAtivo}
+        ageInMonths={
+          Number.isInteger(ageYears) && Number.isInteger(ageMonths)
+            ? ageYears * 12 + ageMonths
+            : null
+        }
         onBack={() => setScreen(SCREEN.HOME)}
         onClear={() => {
           setSessionAttempts([]);

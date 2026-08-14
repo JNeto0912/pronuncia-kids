@@ -1584,6 +1584,18 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
+.progress-export {
+  margin: 1rem 0 0 0.6rem;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  background: #d9f0ff;
+  color: #174f78;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .professional-review {
   margin-top: 1rem;
   padding: 1rem;
@@ -1601,6 +1613,13 @@ textarea:focus-visible {
   margin: 0;
 }
 
+.professional-review .professional-automatic-context {
+  padding: 0.65rem;
+  border-radius: 10px;
+  background: #f3efff;
+  color: #4d3785;
+}
+
 .professional-review label {
   display: grid;
   gap: 0.3rem;
@@ -1608,7 +1627,8 @@ textarea:focus-visible {
 }
 
 .professional-review select,
-.professional-review textarea {
+.professional-review textarea,
+.professional-review input {
   width: 100%;
   box-sizing: border-box;
   border: 2px solid #d8c37a;
@@ -1617,6 +1637,12 @@ textarea:focus-visible {
   background: #fff;
   color: #263238;
   font: inherit;
+}
+
+.professional-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .professional-review textarea {
@@ -1724,5 +1750,13 @@ textarea:focus-visible {
 @media (max-width: 540px) {
   .progress-summary {
     grid-template-columns: 1fr;
+  }
+
+  .professional-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-export {
+    margin-left: 0;
   }
 }
