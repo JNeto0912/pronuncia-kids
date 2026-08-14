@@ -610,6 +610,16 @@ function ProgressScreen({
                 </li>
               ))}
             </ul>
+          </>
+        ) : (
+          <p className="progress-empty">
+            Ainda não há tentativas nesta sessão. Escolha uma categoria e experimente
+            uma palavra.
+          </p>
+        )}
+
+        {(attempts.length > 0 || professionalNotes.length > 0) && (
+          <div className="progress-actions">
             <button className="progress-clear" onClick={onClear}>
               Limpar dados desta sessão
             </button>
@@ -618,12 +628,7 @@ function ProgressScreen({
                 Exportar ficha da sessão (.json)
               </button>
             )}
-          </>
-        ) : (
-          <p className="progress-empty">
-            Ainda não há tentativas nesta sessão. Escolha uma categoria e experimente
-            uma palavra.
-          </p>
+          </div>
         )}
 
         {professionalNotes.length > 0 && (

@@ -1573,7 +1573,6 @@ textarea:focus-visible {
 }
 
 .progress-clear {
-  margin-top: 1rem;
   min-height: 44px;
   border: 0;
   border-radius: 999px;
@@ -1585,7 +1584,6 @@ textarea:focus-visible {
 }
 
 .progress-export {
-  margin: 1rem 0 0 0.6rem;
   min-height: 44px;
   border: 0;
   border-radius: 999px;
@@ -1594,6 +1592,13 @@ textarea:focus-visible {
   color: #174f78;
   font-weight: 800;
   cursor: pointer;
+}
+
+.progress-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
 }
 
 .professional-review {
@@ -1756,7 +1761,4 @@ textarea:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .progress-export {
-    margin-left: 0;
-  }
 }
