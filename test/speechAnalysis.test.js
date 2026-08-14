@@ -34,7 +34,17 @@ test("identifica uma variante cadastrada sem apresentar diagnóstico", () => {
   const word = WORDS.find((item) => item.id === "gato");
   const result = analyzeTranscription("dato", word);
   assert.equal(result.tipo, "erro_especifico");
-  assert.equal(result.processo.revisaoPendente, true);
+  assert.equal(result.processo.id, "frontalizacao_velar");
+  assert.equal(result.processos.length, 1);
+});
+
+test("associa uma variante composta a mais de um processo cadastrado", () => {
+  const word = WORDS.find((item) => item.id === "cachorro");
+  const result = analyzeTranscription("tatorro", word);
+  assert.deepEqual(
+    result.processos.map((process) => process.id),
+    ["harmonia_consonantal", "frontalizacao_velar"]
+  );
 });
 
 test("gera orientação diferente antes e depois da idade de referência", () => {

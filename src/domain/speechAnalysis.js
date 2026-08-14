@@ -99,11 +99,12 @@ export function formatRecognitionConfidence(confidence) {
   return `${Math.round(confidence * 100)}%`;
 }
 
-function findRegisteredProcess(processName) {
-  const normalizedName = normalizeText(processName);
-  return PHONOLOGICAL_PROCESSES.find(
-    (process) => normalizeText(process.nome) === normalizedName
-  );
+function findRegisteredProcesses(processIds = []) {
+  return processIds
+    .map((processId) =>
+      PHONOLOGICAL_PROCESSES.find((process) => process.id === processId)
+    )
+    .filter(Boolean);
 }
 
 export function analyzeTranscription(spoken, targetWord) {
@@ -119,16 +120,20 @@ export function analyzeTranscription(spoken, targetWord) {
 
   for (const rule of targetWord.regrasErro || []) {
     if (spokenNormalized !== normalizeText(rule.erro)) continue;
-    const registeredProcess = findRegisteredProcess(rule.processo);
+    const registeredProcesses = findRegisteredProcesses(rule.processIds);
+    const fallbackProcess = {
+      id: null,
+      nome: rule.processo,
+      definicao: rule.descricao,
+      idadeLimite: rule.idadeEsperada,
+      revisaoPendente: true,
+    };
+    const processes =
+      registeredProcesses.length > 0 ? registeredProcesses : [fallbackProcess];
     return {
       tipo: "erro_especifico",
-      processo: registeredProcess || {
-        id: null,
-        nome: rule.processo,
-        definicao: rule.descricao,
-        idadeLimite: rule.idadeEsperada,
-        revisaoPendente: true,
-      },
+      processo: processes[0],
+      processos: processes,
       descricao: rule.descricao,
       ipaCorreto: rule.ipaCorreto,
       ipaErro: rule.ipaErro,

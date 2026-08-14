@@ -30,8 +30,7 @@ const SCREEN = {
 // ============================================================
 function HomeScreen({
   onStart,
-  modoFonoAtivo,
-  setModoFonoAtivo,
+  onStartProfessional,
   onOpenAAC,
   onOpenProgress,
   onOpenSettings,
@@ -83,15 +82,9 @@ function HomeScreen({
             <span className="btn-icon">⚙️</span>
             <span className="btn-text">Configurações</span>
           </button>
-          <button
-            className={`home-btn home-btn-fono ${modoFonoAtivo ? "active" : ""}`}
-            onClick={() => setModoFonoAtivo(!modoFonoAtivo)}
-          >
-            <span className="btn-icon">🎧</span>
-            <span className="btn-text">Modo Fono</span>
-            <div className={`toggle-switch ${modoFonoAtivo ? "on" : "off"}`}>
-              <div className="toggle-handle"></div>
-            </div>
+          <button className="home-btn home-btn-fono" onClick={onStartProfessional}>
+            <span className="btn-icon">🧠</span>
+            <span className="btn-text">Área do profissional</span>
           </button>
         </div>
 
@@ -147,8 +140,14 @@ function CategoriesScreen({
             Anos
             <select
               value={ageYears}
-              onChange={(event) => onAgeChange(Number(event.target.value), ageMonths)}
+              onChange={(event) =>
+                onAgeChange(
+                  event.target.value === "" ? "" : Number(event.target.value),
+                  ageMonths
+                )
+              }
             >
+              <option value="">Selecione</option>
               {Array.from({ length: 11 }, (_, value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
@@ -158,8 +157,14 @@ function CategoriesScreen({
             Meses
             <select
               value={ageMonths}
-              onChange={(event) => onAgeChange(ageYears, Number(event.target.value))}
+              onChange={(event) =>
+                onAgeChange(
+                  ageYears,
+                  event.target.value === "" ? "" : Number(event.target.value)
+                )
+              }
             >
+              <option value="">Selecione</option>
               {Array.from({ length: 12 }, (_, value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
@@ -185,8 +190,6 @@ function CategoriesScreen({
             key={category.id}
             className={`category-card ${category.colorClass}`}
             onClick={() => onSelectCategory(category.id)}
-            disabled={!microphoneConsent}
-            aria-describedby={!microphoneConsent ? "category-consent-hint" : undefined}
           >
             <span className="category-emoji">{category.emoji}</span>
             <span className="category-label">{category.label}</span>
@@ -195,7 +198,7 @@ function CategoriesScreen({
       </main>
       {!microphoneConsent && (
         <p id="category-consent-hint" className="consent-hint">
-          Confirme a autorização acima para iniciar uma atividade com microfone.
+          Sem autorização, ainda é possível ouvir as palavras e praticar sem análise automática.
         </p>
       )}
     </div>
@@ -209,8 +212,8 @@ function TrainingScreen({
   categoriaSelecionada,
   onBack,
   modoFonoAtivo,
-  setModoFonoAtivo,
   ageInMonths,
+  microphoneConsent,
   onAttempt,
   onProfessionalNote,
 }) {
@@ -238,6 +241,10 @@ function TrainingScreen({
     palavrasDaCategoria[currentIndex % palavrasDaCategoria.length];
 
   function startListening() {
+    if (!microphoneConsent) {
+      setFeedback("O microfone não foi autorizado. Você ainda pode ouvir e praticar a palavra.");
+      return;
+    }
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -272,22 +279,16 @@ function TrainingScreen({
         similaridade: sim,
         reconhecida: sim >= 0.85,
       });
-      if (sim >= 0.85) {
-        setFeedback("Muito bem! O aplicativo reconheceu a palavra esperada. 🎉");
-        if (!palavrasPontuadas.has(currentWord.id)) {
-          setPalavrasPontuadas((previous) => {
-            const updated = new Set(previous);
-            updated.add(currentWord.id);
-            return updated;
-          });
-          setEstrelasSessao((previous) => Math.min(objetivoSessao, previous + 1));
-        }
-        setShowCongrats(true);
-      } else if (sim >= 0.6) {
-        setFeedback("O reconhecedor encontrou uma palavra parecida. Tente novamente com calma.");
-      } else {
-        setFeedback("O aplicativo não reconheceu a palavra desta vez. Isso pode ser uma limitação do microfone ou do reconhecedor.");
+      setFeedback("Muito bem por participar! Você pode tentar novamente ou seguir para a próxima palavra. 🎉");
+      if (!palavrasPontuadas.has(currentWord.id)) {
+        setPalavrasPontuadas((previous) => {
+          const updated = new Set(previous);
+          updated.add(currentWord.id);
+          return updated;
+        });
+        setEstrelasSessao((previous) => Math.min(objetivoSessao, previous + 1));
       }
+      setShowCongrats(true);
       if (modoFonoAtivo) {
         const analise = analyzeTranscription(transcript, currentWord);
         setFonoInfo(analise);
@@ -374,13 +375,7 @@ function TrainingScreen({
             <span className="training-logo-main">Pronúncia</span>
             <span className="training-logo-kids">Kids</span>
           </div>
-          <button
-            className={`icon-button ${modoFonoAtivo ? "icon-button-active" : ""}`}
-            onClick={() => setModoFonoAtivo(!modoFonoAtivo)}
-            title={modoFonoAtivo ? "Desativar Modo Fono" : "Ativar Modo Fono"}
-          >
-            {modoFonoAtivo ? "🧠" : "💡"}
-          </button>
+          <div className="placeholder-button" aria-hidden="true" />
         </header>
 
         <main className="training-card">
@@ -438,7 +433,7 @@ function TrainingScreen({
             <button
               className={`mic-button ${isListening ? "mic-button-listening" : ""}`}
               onClick={startListening}
-              disabled={!isSupported || isListening}
+              disabled={!isSupported || isListening || !microphoneConsent}
               aria-label={isListening ? "Ouvindo" : "Falar a palavra"}
             >
               🎙️
@@ -446,12 +441,21 @@ function TrainingScreen({
           </div>
 
           <div className="training-result-box" aria-live="polite">
-            <p className="training-result-line">
-              <strong>Você disse:</strong> {spokenText || "—"}
-            </p>
-            {accuracy !== null && (
-              <p className="training-result-line">
-                <strong>Semelhança da transcrição:</strong> {(accuracy * 100).toFixed(0)}%
+            {modoFonoAtivo && (
+              <>
+                <p className="training-result-line">
+                  <strong>Transcrição automática:</strong> {spokenText || "—"}
+                </p>
+                {accuracy !== null && (
+                  <p className="training-result-line">
+                    <strong>Semelhança ortográfica:</strong> {(accuracy * 100).toFixed(0)}%
+                  </p>
+                )}
+              </>
+            )}
+            {!microphoneConsent && (
+              <p className="training-feedback">
+                Modo sem microfone: ouça a palavra e pratique no seu ritmo.
               </p>
             )}
             {feedback && <p className="training-feedback">{feedback}</p>}
@@ -486,7 +490,7 @@ function TrainingScreen({
           <div className="congrats-overlay" role="presentation">
             <div className="congrats-card" role="dialog" aria-modal="true" aria-labelledby="congrats-title">
               <div className="congrats-star">⭐</div>
-              <h2 id="congrats-title" className="congrats-title">Muito bem!</h2>
+              <h2 id="congrats-title" className="congrats-title">Muito bem por tentar!</h2>
               <p className="congrats-word">{currentWord.palavra.toUpperCase()}</p>
               <p className="congrats-sub">
                 Você já tem {estrelasSessao} de {objetivoSessao} estrelas nesta sessão!
@@ -501,7 +505,7 @@ function TrainingScreen({
 }
 
 
-function ProgressScreen({ attempts, professionalNotes, onBack, onClear }) {
+function ProgressScreen({ attempts, professionalNotes, professionalMode, onBack, onClear }) {
   const recognized = attempts.filter((attempt) => attempt.reconhecida).length;
   const average =
     attempts.length === 0
@@ -509,6 +513,7 @@ function ProgressScreen({ attempts, professionalNotes, onBack, onClear }) {
       : attempts.reduce((sum, attempt) => sum + attempt.similaridade, 0) /
         attempts.length;
   const recentAttempts = attempts.slice(-10).reverse();
+  const practicedWords = new Set(attempts.map((attempt) => attempt.wordId)).size;
 
   return (
     <div className="progress-container">
@@ -527,13 +532,21 @@ function ProgressScreen({ attempts, professionalNotes, onBack, onClear }) {
             <span>Tentativas</span>
           </div>
           <div className="progress-stat">
-            <strong>{recognized}</strong>
-            <span>Reconhecidas</span>
+            <strong>{practicedWords}</strong>
+            <span>Palavras praticadas</span>
           </div>
-          <div className="progress-stat">
-            <strong>{Math.round(average * 100)}%</strong>
-            <span>Semelhança média</span>
-          </div>
+          {professionalMode && (
+            <>
+              <div className="progress-stat">
+                <strong>{recognized}</strong>
+                <span>Reconhecidas pela API</span>
+              </div>
+              <div className="progress-stat">
+                <strong>{Math.round(average * 100)}%</strong>
+                <span>Semelhança ortográfica média</span>
+              </div>
+            </>
+          )}
           <div className="progress-stat">
             <strong>{professionalNotes.length}</strong>
             <span>Registros manuais</span>
@@ -553,11 +566,13 @@ function ProgressScreen({ attempts, professionalNotes, onBack, onClear }) {
                 <li key={attempt.id}>
                   <span>
                     <strong>{attempt.palavra}</strong>
-                    <small>Transcrição: {attempt.transcricao}</small>
+                    {professionalMode && <small>Transcrição: {attempt.transcricao}</small>}
                   </span>
-                  <span className={attempt.reconhecida ? "recognized" : "try-again"}>
-                    {Math.round(attempt.similaridade * 100)}%
-                  </span>
+                  {professionalMode && (
+                    <span className={attempt.reconhecida ? "recognized" : "try-again"}>
+                      {Math.round(attempt.similaridade * 100)}%
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -628,6 +643,12 @@ function AACScreen({ onBack }) {
     setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
   };
 
+  const verboQuererPorPessoa = (quem) => {
+    if (quem?.id === "eu") return "quero";
+    if (quem?.id === "nos") return "queremos";
+    return "quer";
+  };
+
   const falarFraseCompleta = () => {
     // Nível 1: não tem slots, então não faz nada especial aqui
     if (nivel === 1) return;
@@ -646,7 +667,11 @@ function AACScreen({ onBack }) {
 
       // Se tem quem e complemento: "Eu quero brincar", "Eu estou triste" (dá pra ajustar depois)
       if (quem && comp) {
-        falar(`${quem.fala || quem.texto} quer ${comp.fala || comp.texto}`);
+        falar(
+          `${quem.fala || quem.texto} ${verboQuererPorPessoa(quem)} ${
+            comp.fala || comp.texto
+          }`
+        );
         return;
       }
 
@@ -917,8 +942,8 @@ function App() {
   const [screen, setScreen] = useState(SCREEN.HOME);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
   const [modoFonoAtivo, setModoFonoAtivo] = useState(false);
-  const [ageYears, setAgeYears] = useState(4);
-  const [ageMonths, setAgeMonths] = useState(0);
+  const [ageYears, setAgeYears] = useState("");
+  const [ageMonths, setAgeMonths] = useState("");
   const [microphoneConsent, setMicrophoneConsent] = useState(false);
   const [sessionAttempts, setSessionAttempts] = useState([]);
   const [professionalNotes, setProfessionalNotes] = useState([]);
@@ -926,9 +951,14 @@ function App() {
 if (screen === SCREEN.HOME) {
   return (
     <HomeScreen
-      onStart={() => setScreen(SCREEN.CATEGORIES)}
-      modoFonoAtivo={modoFonoAtivo}
-      setModoFonoAtivo={setModoFonoAtivo}
+      onStart={() => {
+        setModoFonoAtivo(false);
+        setScreen(SCREEN.CATEGORIES);
+      }}
+      onStartProfessional={() => {
+        setModoFonoAtivo(true);
+        setScreen(SCREEN.CATEGORIES);
+      }}
       onOpenAAC={() => setScreen(SCREEN.AAC)}
       onOpenProgress={() => setScreen(SCREEN.PROGRESS)}
       onOpenSettings={() => setScreen(SCREEN.SETTINGS)}
@@ -962,8 +992,12 @@ if (screen === SCREEN.HOME) {
         categoriaSelecionada={categoriaSelecionada}
         onBack={() => setScreen(SCREEN.CATEGORIES)}
         modoFonoAtivo={modoFonoAtivo}
-        setModoFonoAtivo={setModoFonoAtivo}
-        ageInMonths={ageYears * 12 + ageMonths}
+        microphoneConsent={microphoneConsent}
+        ageInMonths={
+          Number.isInteger(ageYears) && Number.isInteger(ageMonths)
+            ? ageYears * 12 + ageMonths
+            : null
+        }
         onAttempt={(attempt) =>
           setSessionAttempts((previous) => [
             ...previous,
@@ -995,6 +1029,7 @@ if (screen === SCREEN.HOME) {
       <ProgressScreen
         attempts={sessionAttempts}
         professionalNotes={professionalNotes}
+        professionalMode={modoFonoAtivo}
         onBack={() => setScreen(SCREEN.HOME)}
         onClear={() => {
           setSessionAttempts([]);

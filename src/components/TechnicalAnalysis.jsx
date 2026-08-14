@@ -14,8 +14,7 @@ export default function TechnicalAnalysis({
   ageInMonths,
 }) {
   const status = getTechnicalStatus(analysis);
-  const process = analysis?.processo;
-  const ageGuidance = getAgeGuidance(ageInMonths, process);
+  const processes = analysis?.processos || (analysis?.processo ? [analysis.processo] : []);
 
   return (
     <section className="technical-analysis" aria-labelledby="technical-title">
@@ -67,9 +66,9 @@ export default function TechnicalAnalysis({
           <div>
             <dt>Status da regra</dt>
             <dd>
-              {process?.revisaoPendente
+              {processes.some((process) => process.revisaoPendente)
                 ? "Revisão clínica pendente"
-                : process
+                : processes.length > 0
                 ? "Presente no catálogo provisório"
                 : "Não aplicável"}
             </dd>
@@ -77,28 +76,32 @@ export default function TechnicalAnalysis({
         </dl>
       </div>
 
-      {process && (
+      {processes.length > 0 && (
         <div className="technical-process">
-          <h4>Hipótese associada à variante cadastrada</h4>
-          <dl>
-            <div>
-              <dt>Processo</dt>
-              <dd>{process.nome}</dd>
-            </div>
-            {process.id && (
+          <h4>Hipóteses associadas à variante cadastrada</h4>
+          {processes.map((process) => (
+            <dl key={process.id || process.nome}>
               <div>
-                <dt>Identificador</dt>
-                <dd><code>{process.id}</code></dd>
+                <dt>Processo</dt>
+                <dd>{process.nome}</dd>
               </div>
-            )}
-            <div>
-              <dt>Descrição cadastrada</dt>
-              <dd>{process.definicao}</dd>
-            </div>
-            <div>
-              <dt>Referência etária cadastrada</dt>
-              <dd>{process.idadeLimite || "Não informada"}</dd>
-            </div>
+              {process.id && (
+                <div>
+                  <dt>Identificador</dt>
+                  <dd><code>{process.id}</code></dd>
+                </div>
+              )}
+              <div>
+                <dt>Descrição cadastrada</dt>
+                <dd>{process.definicao}</dd>
+              </div>
+              <div>
+                <dt>Referência etária cadastrada</dt>
+                <dd>{process.idadeLimite || "Não informada"}</dd>
+              </div>
+            </dl>
+          ))}
+          <dl>
             {analysis.ipaCorreto && (
               <div>
                 <dt>IPA alvo</dt>
@@ -120,11 +123,14 @@ export default function TechnicalAnalysis({
           <strong>Descrição:</strong> {analysis.descricao}
         </p>
       )}
-      {ageGuidance && (
-        <p className="technical-age">
-          <strong>Leitura etária orientativa:</strong> {ageGuidance}
-        </p>
-      )}
+      {processes.map((process) => {
+        const guidance = getAgeGuidance(ageInMonths, process);
+        return guidance ? (
+          <p className="technical-age" key={`age-${process.id || process.nome}`}>
+            <strong>{process.nome} — leitura etária orientativa:</strong> {guidance}
+          </p>
+        ) : null;
+      })}
 
       <aside className="technical-limit">
         <strong>Limite metodológico:</strong> o painel analisa texto produzido pela

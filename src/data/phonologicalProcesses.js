@@ -97,4 +97,11 @@ export const PHONOLOGICAL_PROCESSES = [
       "Encontros consonantais com /r/ ou /l/ são omitidos ou substituídos.",
     idadeLimite: "5 anos",
   },
+  {
+    id: "desnasalizacao",
+    nome: "Desnasalização",
+    definicao: "Uma vogal nasal é produzida sem a nasalidade esperada.",
+    idadeLimite: "3 anos",
+    revisaoPendente: true,
+  },
 ];

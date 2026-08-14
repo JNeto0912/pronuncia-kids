@@ -1251,6 +1251,12 @@
   gap: 0.55rem;
 }
 
+.technical-process dl + dl {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid #d3c8ee;
+}
+
 .technical-card {
   padding: 0.8rem;
   border: 1px solid #cbd9e5;
@@ -1435,7 +1441,8 @@
 
 button:focus-visible,
 select:focus-visible,
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible {
   outline: 4px solid #1a73e8;
   outline-offset: 3px;
 }

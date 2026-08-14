@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { WORDS } from "../src/data/words.js";
+import { PHONOLOGICAL_PROCESSES } from "../src/data/phonologicalProcesses.js";
 import {
   AAC_ATALHOS,
   AAC_CATEGORIES,
@@ -29,16 +32,30 @@ test("palavras têm identificadores únicos e categorias conhecidas", () => {
       word.imagemUrl || word.emoji,
       `${word.id} precisa de imagem ou fallback visual`
     );
+    if (word.imagemUrl) {
+      const imagePath = fileURLToPath(
+        new URL(`../public${word.imagemUrl}`, import.meta.url)
+      );
+      assert.ok(existsSync(imagePath), `Imagem ausente para ${word.id}`);
+    }
   }
 });
 
 test("variantes de fala têm os campos necessários", () => {
+  const processIds = new Set(PHONOLOGICAL_PROCESSES.map((process) => process.id));
   for (const word of WORDS) {
     for (const rule of word.regrasErro || []) {
       assert.ok(rule.erro, `Variante sem transcrição em ${word.id}`);
       assert.ok(rule.processo, `Variante sem processo em ${word.id}`);
       assert.ok(rule.descricao, `Variante sem descrição em ${word.id}`);
       assert.ok(rule.idadeEsperada, `Variante sem idade de referência em ${word.id}`);
+      assert.ok(rule.processIds?.length, `Variante sem processIds em ${word.id}`);
+      for (const processId of rule.processIds) {
+        assert.ok(
+          processIds.has(processId),
+          `Processo ${processId} não cadastrado na variante de ${word.id}`
+        );
+      }
     }
   }
 });
