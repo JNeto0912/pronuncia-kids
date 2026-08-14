@@ -18,10 +18,15 @@ test("monta relatório de sessão versionado sem inferir diagnóstico", () => {
   assert.equal(report.ageInMonths, 53);
   assert.equal(report.attempts.length, 1);
   assert.equal(report.professionalRecords.length, 1);
-  assert.match(report.methodologicalNotice, /não constituem avaliação/);
+  assert.match(report.methodologicalNotice, /Exigem conferência/);
 });
 
 test("formata códigos profissionais para apresentação", () => {
   assert.equal(getProfessionalLabel("pista_visual"), "Após pista visual");
+  assert.equal(getProfessionalLabel("nomeacao"), "Nomeação pela figura/palavra");
+  assert.equal(
+    getProfessionalLabel("confirmada_pelo_profissional"),
+    "Sugestão automática confirmada"
+  );
   assert.equal(getProfessionalLabel("valor_novo"), "valor novo");
 });

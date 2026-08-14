@@ -1,4 +1,4 @@
-export const SESSION_REPORT_SCHEMA_VERSION = 1;
+export const SESSION_REPORT_SCHEMA_VERSION = 2;
 
 const PROFESSIONAL_LABELS = {
   adequada_percebida: "Produção percebida como esperada",
@@ -8,6 +8,7 @@ const PROFESSIONAL_LABELS = {
   inconclusiva: "Observação inconclusiva",
   outro: "Outro",
   espontanea: "Produção espontânea",
+  nomeacao: "Nomeação pela figura/palavra",
   imitacao: "Imitação após modelo",
   pista_visual: "Após pista visual",
   pista_verbal: "Após pista verbal",
@@ -25,6 +26,8 @@ const PROFESSIONAL_LABELS = {
   totalmente_compreensivel: "Totalmente compreensível",
   parcialmente_compreensivel: "Parcialmente compreensível",
   pouco_compreensivel: "Pouco compreensível",
+  confirmada_pelo_profissional: "Sugestão automática confirmada",
+  corrigida_pelo_profissional: "Sugestão automática corrigida",
 };
 
 export function getProfessionalLabel(value) {
@@ -42,7 +45,7 @@ export function buildSessionReport({
     exportedAt,
     ageInMonths: Number.isInteger(ageInMonths) ? ageInMonths : null,
     methodologicalNotice:
-      "As transcrições automáticas são dados auxiliares da Web Speech API e não constituem avaliação fonética, triagem ou diagnóstico.",
+      "As pré-avaliações são sugestões auxiliares geradas a partir da transcrição da Web Speech API e de regras cadastradas. Exigem conferência do fonoaudiólogo e não constituem diagnóstico.",
     attempts,
     professionalRecords: professionalNotes,
   };

@@ -235,6 +235,7 @@ function TrainingScreen({
   const [accuracy, setAccuracy] = useState(null);
   const [recognitionConfidence, setRecognitionConfidence] = useState(null);
   const [fonoInfo, setFonoInfo] = useState(null);
+  const [professionalTranscription, setProfessionalTranscription] = useState("");
   const [showCongrats, setShowCongrats] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const [estrelasSessao, setEstrelasSessao] = useState(0);
@@ -243,6 +244,44 @@ function TrainingScreen({
 
   const currentWord =
     palavrasDaCategoria[currentIndex % palavrasDaCategoria.length];
+
+  function processProduction(transcript, confidence = null, source = "speech_recognition") {
+    const cleanTranscript = transcript.trim();
+    if (!cleanTranscript) return;
+    const automaticAnalysis = modoFonoAtivo
+      ? analyzeTranscription(cleanTranscript, currentWord)
+      : null;
+    const sim = getSimilarity(currentWord.palavra, cleanTranscript);
+
+    setSpokenText(cleanTranscript);
+    setRecognitionConfidence(confidence);
+    setAccuracy(sim);
+    onAttempt({
+      wordId: currentWord.id,
+      palavra: currentWord.palavra,
+      categoria: currentWord.categoria,
+      transcricao: cleanTranscript,
+      similaridade: sim,
+      reconhecida: sim >= 0.85,
+      transcriptionSource: source,
+      automaticAssessment: automaticAnalysis,
+    });
+    setFeedback(
+      modoFonoAtivo
+        ? "Produção registrada. A avaliação automática está pronta para conferência."
+        : "Muito bem por participar! Você pode tentar novamente ou seguir para a próxima palavra. 🎉"
+    );
+    if (!palavrasPontuadas.has(currentWord.id)) {
+      setPalavrasPontuadas((previous) => {
+        const updated = new Set(previous);
+        updated.add(currentWord.id);
+        return updated;
+      });
+      setEstrelasSessao((previous) => Math.min(objetivoSessao, previous + 1));
+    }
+    setShowCongrats(!modoFonoAtivo);
+    setFonoInfo(automaticAnalysis);
+  }
 
   function startListening() {
     if (!microphoneConsent) {
@@ -271,32 +310,11 @@ function TrainingScreen({
     recognition.onresult = (event) => {
       const recognitionResult = event.results[0][0];
       const transcript = recognitionResult.transcript.trim();
-      setSpokenText(transcript);
-      setRecognitionConfidence(recognitionResult.confidence || null);
-      const sim = getSimilarity(currentWord.palavra, transcript);
-      setAccuracy(sim);
-      onAttempt({
-        wordId: currentWord.id,
-        palavra: currentWord.palavra,
-        categoria: currentWord.categoria,
-        transcricao: transcript,
-        similaridade: sim,
-        reconhecida: sim >= 0.85,
-      });
-      setFeedback("Muito bem por participar! Você pode tentar novamente ou seguir para a próxima palavra. 🎉");
-      if (!palavrasPontuadas.has(currentWord.id)) {
-        setPalavrasPontuadas((previous) => {
-          const updated = new Set(previous);
-          updated.add(currentWord.id);
-          return updated;
-        });
-        setEstrelasSessao((previous) => Math.min(objetivoSessao, previous + 1));
-      }
-      setShowCongrats(true);
-      if (modoFonoAtivo) {
-        const analise = analyzeTranscription(transcript, currentWord);
-        setFonoInfo(analise);
-      }
+      processProduction(
+        transcript,
+        recognitionResult.confidence || null,
+        "speech_recognition"
+      );
     };
     recognition.onerror = (event) => {
       const message =
@@ -321,6 +339,7 @@ function TrainingScreen({
     setRecognitionConfidence(null);
     setFeedback("");
     setFonoInfo(null);
+    setProfessionalTranscription("");
     setImageFailed(false);
     setCurrentIndex((prev) =>
       prev + 1 < palavrasDaCategoria.length ? prev + 1 : 0
@@ -334,6 +353,7 @@ function TrainingScreen({
     setRecognitionConfidence(null);
     setFeedback("");
     setFonoInfo(null);
+    setProfessionalTranscription("");
     setImageFailed(false);
     setCurrentIndex((prev) =>
       prev - 1 >= 0 ? prev - 1 : palavrasDaCategoria.length - 1
@@ -482,13 +502,44 @@ function TrainingScreen({
           </div>
 
           {modoFonoAtivo && (
+            <form
+              className="professional-transcription-fallback"
+              onSubmit={(event) => {
+                event.preventDefault();
+                processProduction(
+                  professionalTranscription,
+                  null,
+                  "professional_transcription"
+                );
+                setProfessionalTranscription("");
+              }}
+            >
+              <label>
+                Se o navegador não reconhecer corretamente, digite a produção percebida
+                <input
+                  type="text"
+                  value={professionalTranscription}
+                  maxLength={120}
+                  placeholder="Ex.: dato"
+                  onChange={(event) => setProfessionalTranscription(event.target.value)}
+                />
+              </label>
+              <button type="submit" disabled={!professionalTranscription.trim()}>
+                Analisar produção
+              </button>
+            </form>
+          )}
+
+          {modoFonoAtivo && (
             <ProfessionalReview
-              key={currentWord.id}
+              key={`${currentWord.id}:${spokenText}`}
               word={currentWord}
               automaticContext={{
                 transcription: spokenText,
                 similarity: accuracy,
                 recognitionConfidence,
+                analysis: fonoInfo,
+                elicitation: "nomeacao",
               }}
               onSave={onProfessionalNote}
             />
@@ -638,6 +689,11 @@ function ProgressScreen({
               {professionalNotes.slice(-10).reverse().map((note) => (
                 <li key={note.id}>
                   <strong>{note.palavra}</strong>
+                  {note.reviewStatus && (
+                    <span className={`professional-review-status ${note.reviewStatus}`}>
+                      {getProfessionalLabel(note.reviewStatus)}
+                    </span>
+                  )}
                   <span>{getProfessionalLabel(note.classification)}</span>
                   <small>
                     {getProfessionalLabel(note.elicitation)}
@@ -650,6 +706,11 @@ function ProgressScreen({
                   )}
                   {note.automaticTranscription && (
                     <small>Transcrição automática vinculada: {note.automaticTranscription}</small>
+                  )}
+                  {note.automaticAssessment?.processNames?.length > 0 && (
+                    <small>
+                      Hipótese automática: {note.automaticAssessment.processNames.join(" + ")}
+                    </small>
                   )}
                   <small>
                     Estimulabilidade: {getProfessionalLabel(note.stimulability)} • Consistência: {getProfessionalLabel(note.consistency)} • Inteligibilidade: {getProfessionalLabel(note.intelligibility)}
