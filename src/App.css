@@ -836,7 +836,8 @@
 /* Header */
 .aac-header {
   width: 100%;
-  max-width: 520px;
+  max-width: 760px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -859,13 +860,14 @@
 
 /* Barra de contexto */
 .aac-context-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.4rem;
-  overflow-x: auto;
+  overflow: visible;
   padding: 0.3rem 0.2rem 0.5rem;
   width: 100%;
-  max-width: 520px;
-  scrollbar-width: none;
+  max-width: 760px;
+  box-sizing: border-box;
   z-index: 1;
 }
 
@@ -887,7 +889,8 @@
   gap: 0.35rem;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
   white-space: nowrap;
-  flex-shrink: 0;
+  justify-content: center;
+  min-width: 0;
   transition: all 0.2s ease;
 }
 
@@ -908,12 +911,14 @@
 /* Atalhos fundamentais como cards visuais */
 .aac-atalhos-bar {
   width: 100%;
-  max-width: 520px;
-  display: flex;
+  max-width: 760px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.6rem;
   margin: 0.4rem 0 0.8rem;
   z-index: 1;
-  overflow-x: auto;
+  overflow: visible;
   padding-bottom: 0.2rem;
 }
 
@@ -925,7 +930,7 @@
   border: none;
   border-radius: 18px;
   padding: 0.5rem 0.7rem;
-  min-width: 120px;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -934,7 +939,7 @@
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
   font-weight: 800;
   color: #5d4037;
-  flex-shrink: 0;
+  width: 100%;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
@@ -1039,13 +1044,14 @@
 
 /* Abas de categorias */
 .aac-categories-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.4rem;
-  overflow-x: auto;
+  overflow: visible;
   padding: 0.2rem 0.2rem 0.6rem;
   width: 100%;
-  max-width: 520px;
-  scrollbar-width: none;
+  max-width: 760px;
+  box-sizing: border-box;
   z-index: 1;
 }
 
@@ -1065,9 +1071,9 @@
   color: #555;
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
-  white-space: nowrap;
-  min-width: 68px;
-  flex-shrink: 0;
+  white-space: normal;
+  min-width: 0;
+  width: 100%;
   transition: all 0.2s ease;
 }
 
@@ -1093,7 +1099,8 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 0.75rem;
   width: 100%;
-  max-width: 520px;
+  max-width: 760px;
+  box-sizing: border-box;
   z-index: 1;
 }
 
@@ -1146,7 +1153,8 @@
 /* Barra de nível da AAC */
 .aac-level-bar {
   width: 100%;
-  max-width: 520px;
+  max-width: 760px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -1482,7 +1490,7 @@
 
 .aac-strip-label {
   align-self: center;
-  flex: 0 0 auto;
+  grid-column: 1 / -1;
   color: #fff;
   font-size: 0.75rem;
   font-weight: 900;
@@ -1499,7 +1507,8 @@
 }
 
 .aac-symbol-search {
-  width: min(520px, 100%);
+  width: min(760px, 100%);
+  box-sizing: border-box;
   margin-bottom: 0.65rem;
   display: grid;
   gap: 0.25rem;
@@ -1531,6 +1540,45 @@
   color: #52616d;
 }
 
+.aac-phrase-bar {
+  width: min(760px, 100%);
+  box-sizing: border-box;
+  margin-bottom: 0.75rem;
+  padding: 0.85rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #304452;
+  z-index: 1;
+}
+
+.aac-phrase-bar-label {
+  margin: 0 0 0.55rem;
+  font-weight: 900;
+  text-align: left;
+}
+
+.aac-phrase-slots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+.aac-slot {
+  min-width: 0;
+  padding: 0.45rem;
+  border-radius: 12px;
+  background: #f3f8fb;
+}
+
+.aac-slot-label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #536875;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
 @media (max-width: 620px) {
   .aac-section-heading,
   .aac-history-heading {
@@ -1542,7 +1590,20 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .aac-context-bar,
+  .aac-atalhos-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .aac-categories-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .aac-routine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .aac-phrase-slots {
     grid-template-columns: 1fr;
   }
 
