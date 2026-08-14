@@ -3,6 +3,28 @@
 // Slots da frase
 export const AAC_SLOTS = ["quem", "verbo", "complemento"];
 
+// Vocabulário essencial em posições fixas para acesso rápido.
+export const AAC_CORE_MESSAGES = [
+  { id: "sim", label: "Sim", fala: "Sim", emoji: "✅", intent: "aceitar" },
+  { id: "nao", label: "Não", fala: "Não", emoji: "❌", intent: "recusar" },
+  { id: "quero", label: "Quero", fala: "Eu quero", emoji: "🙋", intent: "pedir" },
+  { id: "nao_quero", label: "Não quero", fala: "Eu não quero", emoji: "🙅", intent: "recusar" },
+  { id: "mais", label: "Mais", fala: "Eu quero mais", emoji: "➕", intent: "continuar" },
+  { id: "acabou", label: "Acabou", fala: "Acabou", emoji: "🏁", intent: "encerrar" },
+  { id: "ajuda", label: "Ajuda", fala: "Eu preciso de ajuda", emoji: "🆘", intent: "pedir_ajuda" },
+  { id: "pausa", label: "Pausa", fala: "Eu quero uma pausa", emoji: "⏸️", intent: "regular" },
+];
+
+export const AAC_ROUTINE_ITEMS = [
+  { id: "atividade", label: "Atividade", fala: "fazer a atividade", emoji: "🧩" },
+  { id: "brincar", label: "Brincar", fala: "brincar", emoji: "🧸" },
+  { id: "guardar", label: "Guardar", fala: "guardar os materiais", emoji: "🧺" },
+  { id: "lanche", label: "Lanche", fala: "fazer o lanche", emoji: "🍎" },
+  { id: "banheiro", label: "Banheiro", fala: "ir ao banheiro", emoji: "🚻" },
+  { id: "pausa", label: "Pausa", fala: "fazer uma pausa", emoji: "⏸️" },
+  { id: "casa", label: "Ir para casa", fala: "ir para casa", emoji: "🏠" },
+];
+
 // Contextos principais
 export const AAC_CONTEXTS = [
   { id: "geral", label: "Geral", emoji: "🏠" },

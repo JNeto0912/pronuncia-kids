@@ -4,10 +4,16 @@ import { WORDS } from "./data/words";
 import {
   AAC_ATALHOS,
   AAC_CATEGORIES,
+  AAC_CORE_MESSAGES,
   AAC_CONTEXTS,
+  AAC_ROUTINE_ITEMS,
   AAC_SYMBOLS,
   AAC_SLOTS,
 } from "./data/symbols";
+import {
+  buildAACPhrase,
+  buildAACSessionReport,
+} from "./domain/aacCommunication";
 import {
   analyzeTranscription,
   getSimilarity,
@@ -735,96 +741,82 @@ function ProgressScreen({
 function AACScreen({ onBack }) {
   const [nivel, setNivel] = useState(1); // 1, 2 ou 3
   const [contexto, setContexto] = useState("geral");
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState("quem");
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState("necessidades");
   const [slotsSelecionados, setSlotsSelecionados] = useState({
     quem: null,
     verbo: null,
     complemento: null,
   });
+  const [professionalToolsOpen, setProfessionalToolsOpen] = useState(false);
+  const [selectionSource, setSelectionSource] = useState("child_selection");
+  const [symbolSize, setSymbolSize] = useState("large");
+  const [symbolSearch, setSymbolSearch] = useState("");
+  const [messageHistory, setMessageHistory] = useState([]);
+  const [lastMessage, setLastMessage] = useState("");
+  const [firstRoutineId, setFirstRoutineId] = useState("");
+  const [thenRoutineId, setThenRoutineId] = useState("");
 
   const simbolosDaCategoria = AAC_SYMBOLS.filter(
     (s) =>
       s.categoria === categoriaSelecionada &&
-      (s.contexto === "geral" || s.contexto === contexto)
+      (s.contexto === "geral" || s.contexto === contexto) &&
+      (!symbolSearch.trim() ||
+        `${s.texto} ${s.fala}`
+          .toLocaleLowerCase("pt-BR")
+          .includes(symbolSearch.trim().toLocaleLowerCase("pt-BR")))
   );
   const atalhosDoContexto = AAC_ATALHOS.filter(
     (shortcut) =>
       shortcut.contexto === "geral" || shortcut.contexto === contexto
   );
 
-  const falar = (texto) => {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(texto);
-    u.lang = "pt-BR";
-    window.speechSynthesis.speak(u);
+  const falar = (texto, origin = "symbol") => {
+    const cleanText = texto?.trim();
+    if (!cleanText) return;
+    if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = "pt-BR";
+      window.speechSynthesis.speak(utterance);
+    }
+    const spokenAt = new Date().toISOString();
+    const entry = {
+      id: `${spokenAt}-${messageHistory.length}`,
+      text: cleanText,
+      source: selectionSource,
+      origin,
+      spokenAt,
+    };
+    setMessageHistory((previous) => [...previous.slice(-49), entry]);
+    setLastMessage(cleanText);
   };
 
   const limparTudo = () => {
     setSlotsSelecionados({ quem: null, verbo: null, complemento: null });
   };
 
-  const verboQuererPorPessoa = (quem) => {
-    if (quem?.id === "eu") return "quero";
-    if (quem?.id === "nos") return "queremos";
-    return "quer";
+  const falarFraseCompleta = () => {
+    falar(buildAACPhrase(nivel, slotsSelecionados), "composed_phrase");
   };
 
-  const falarFraseCompleta = () => {
-    // Nível 1: não tem slots, então não faz nada especial aqui
-    if (nivel === 1) return;
+  const firstRoutine = AAC_ROUTINE_ITEMS.find((item) => item.id === firstRoutineId);
+  const thenRoutine = AAC_ROUTINE_ITEMS.find((item) => item.id === thenRoutineId);
 
-    // Nível 2: QUEM + COMPLEMENTO, verbo implícito
-    if (nivel === 2) {
-      const quem = slotsSelecionados.quem;
-      const comp = slotsSelecionados.complemento;
-      if (!comp && !quem) return;
-
-      // Se só complemento: "Eu quero água"
-      if (comp && !quem) {
-        falar(`Eu quero ${comp.fala || comp.texto}`);
-        return;
-      }
-
-      // Se tem quem e complemento: "Eu quero brincar", "Eu estou triste" (dá pra ajustar depois)
-      if (quem && comp) {
-        falar(
-          `${quem.fala || quem.texto} ${verboQuererPorPessoa(quem)} ${
-            comp.fala || comp.texto
-          }`
-        );
-        return;
-      }
-
-      return;
-    }
-
-    // Nível 3: usa os 3 slots (modelo atual)
-    if (nivel === 3) {
-      const partes = AAC_SLOTS.map((slot) => {
-        const s = slotsSelecionados[slot];
-        return s ? (s.fala || s.texto) : null;
-      }).filter(Boolean);
-
-      if (partes.length === 0) return;
-
-      // Se só complemento: completa com "Eu quero ..."
-      if (
-        partes.length === 1 &&
-        slotsSelecionados.complemento &&
-        !slotsSelecionados.quem &&
-        !slotsSelecionados.verbo
-      ) {
-        falar(
-          `Eu quero ${
-            slotsSelecionados.complemento.fala ||
-            slotsSelecionados.complemento.texto
-          }`
-        );
-        return;
-      }
-
-      falar(partes.join(" "));
-    }
+  const exportAACSession = () => {
+    const report = buildAACSessionReport({
+      messages: messageHistory,
+      firstItem: firstRoutine || null,
+      thenItem: thenRoutine || null,
+    });
+    const blob = new Blob([JSON.stringify(report, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `comunicacao-alternativa-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSymbolClick = (simbolo) => {
@@ -835,21 +827,21 @@ function AACScreen({ onBack }) {
         simbolo.fala_sozinho ||
         simbolo.fala ||
         simbolo.texto;
-      falar(frase);
+      falar(frase, "symbol");
       return;
     }
 
     // NÍVEL 2 — QUEM + COMPLEMENTO (verbo implícito)
     if (nivel === 2) {
       if (!simbolo.slot) {
-        falar(simbolo.fala || simbolo.texto);
+        falar(simbolo.fala || simbolo.texto, "symbol");
         return;
       }
 
       // só permite preencher quem e complemento
       if (simbolo.slot === "verbo") {
         // verbo não é usado no nível 2
-        falar(simbolo.fala || simbolo.texto);
+        falar(simbolo.fala || simbolo.texto, "symbol");
         return;
       }
 
@@ -859,7 +851,7 @@ function AACScreen({ onBack }) {
       }));
 
       // feedback imediato
-      falar(simbolo.fala || simbolo.texto);
+      falar(simbolo.fala || simbolo.texto, "symbol");
       return;
     }
 
@@ -871,7 +863,7 @@ function AACScreen({ onBack }) {
           [simbolo.slot]: simbolo,
         }));
       }
-      falar(simbolo.fala || simbolo.texto);
+      falar(simbolo.fala || simbolo.texto, "symbol");
     }
   };
 
@@ -891,6 +883,170 @@ function AACScreen({ onBack }) {
         <div className="placeholder-button"></div>
       </header>
 
+      <section className="aac-core-section" aria-labelledby="aac-core-title">
+        <div className="aac-section-heading">
+          <div>
+            <span className="aac-section-eyebrow">Sempre no mesmo lugar</span>
+            <h3 id="aac-core-title">Comunicação essencial</h3>
+          </div>
+          <button
+            className="aac-professional-toggle"
+            aria-expanded={professionalToolsOpen}
+            onClick={() => setProfessionalToolsOpen((open) => !open)}
+          >
+            🧠 {professionalToolsOpen ? "Fechar ferramentas" : "Ferramentas do profissional"}
+          </button>
+        </div>
+        <div className="aac-core-grid">
+          {AAC_CORE_MESSAGES.map((message) => (
+            <button
+              key={message.id}
+              className={`aac-core-card aac-intent-${message.intent}`}
+              onClick={() => falar(message.fala, "core_message")}
+            >
+              <span aria-hidden="true">{message.emoji}</span>
+              <strong>{message.label}</strong>
+            </button>
+          ))}
+        </div>
+        <p className="aac-last-message" aria-live="polite">
+          {lastMessage ? (
+            <>Última mensagem: <strong>{lastMessage}</strong></>
+          ) : (
+            "Toque em uma mensagem para ouvi-la."
+          )}
+        </p>
+      </section>
+
+      {professionalToolsOpen && (
+        <section className="aac-professional-panel" aria-labelledby="aac-professional-title">
+          <div className="aac-section-heading">
+            <div>
+              <span className="aac-section-eyebrow">Apoio à intervenção</span>
+              <h3 id="aac-professional-title">Ferramentas do profissional</h3>
+            </div>
+          </div>
+
+          <div className="aac-professional-grid">
+            <div className="aac-tool-card">
+              <h4>Quem está selecionando?</h4>
+              <p>Separe iniciativas da criança das modelagens feitas pelo parceiro.</p>
+              <div className="aac-segmented-control">
+                <button
+                  className={selectionSource === "child_selection" ? "active" : ""}
+                  aria-pressed={selectionSource === "child_selection"}
+                  onClick={() => setSelectionSource("child_selection")}
+                >
+                  👧 Criança
+                </button>
+                <button
+                  className={selectionSource === "partner_modeling" ? "active" : ""}
+                  aria-pressed={selectionSource === "partner_modeling"}
+                  onClick={() => setSelectionSource("partner_modeling")}
+                >
+                  🤝 Parceiro modelando
+                </button>
+              </div>
+            </div>
+
+            <div className="aac-tool-card">
+              <h4>Tamanho dos símbolos</h4>
+              <p>Ajuste a quantidade visual conforme acesso motor, visual e sensorial.</p>
+              <div className="aac-segmented-control">
+                <button
+                  className={symbolSize === "large" ? "active" : ""}
+                  aria-pressed={symbolSize === "large"}
+                  onClick={() => setSymbolSize("large")}
+                >
+                  Grande
+                </button>
+                <button
+                  className={symbolSize === "compact" ? "active" : ""}
+                  aria-pressed={symbolSize === "compact"}
+                  onClick={() => setSymbolSize("compact")}
+                >
+                  Compacto
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="aac-routine-card">
+            <h4>Apoio visual: primeiro e depois</h4>
+            <div className="aac-routine-grid">
+              <label>
+                <span>1. Primeiro</span>
+                <select value={firstRoutineId} onChange={(event) => setFirstRoutineId(event.target.value)}>
+                  <option value="">Escolha uma atividade</option>
+                  {AAC_ROUTINE_ITEMS.map((item) => (
+                    <option key={item.id} value={item.id}>{item.emoji} {item.label}</option>
+                  ))}
+                </select>
+              </label>
+              <span className="aac-routine-arrow" aria-hidden="true">→</span>
+              <label>
+                <span>2. Depois</span>
+                <select value={thenRoutineId} onChange={(event) => setThenRoutineId(event.target.value)}>
+                  <option value="">Escolha uma atividade</option>
+                  {AAC_ROUTINE_ITEMS.map((item) => (
+                    <option key={item.id} value={item.id}>{item.emoji} {item.label}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {(firstRoutine || thenRoutine) && (
+              <div className="aac-routine-preview">
+                <div>{firstRoutine?.emoji || "1️⃣"}<strong>{firstRoutine?.label || "Primeiro"}</strong></div>
+                <span>depois</span>
+                <div>{thenRoutine?.emoji || "2️⃣"}<strong>{thenRoutine?.label || "Depois"}</strong></div>
+              </div>
+            )}
+            <button
+              className="aac-routine-speak"
+              disabled={!firstRoutine || !thenRoutine}
+              onClick={() => falar(
+                `Primeiro ${firstRoutine.fala}. Depois ${thenRoutine.fala}.`,
+                "visual_routine"
+              )}
+            >
+              🔊 Falar sequência
+            </button>
+          </div>
+
+          <div className="aac-history-card">
+            <div className="aac-history-heading">
+              <div>
+                <h4>Histórico desta sessão</h4>
+                <p>{messageHistory.length} mensagens, sem nome ou identificação.</p>
+              </div>
+              <div>
+                <button onClick={exportAACSession} disabled={messageHistory.length === 0}>
+                  Exportar
+                </button>
+                <button onClick={() => setMessageHistory([])} disabled={messageHistory.length === 0}>
+                  Limpar
+                </button>
+              </div>
+            </div>
+            {messageHistory.length > 0 && (
+              <ul>
+                {messageHistory.slice(-6).reverse().map((entry) => (
+                  <li key={entry.id}>
+                    <span>{entry.text}</span>
+                    <small>{entry.source === "partner_modeling" ? "Modelagem do parceiro" : "Seleção da criança"}</small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <aside className="aac-partner-guidance">
+            <strong>Para o parceiro:</strong> modele tocando nos símbolos enquanto fala,
+            aguarde a resposta e aceite fala, gesto, olhar ou seleção no painel. Não exija repetição.
+          </aside>
+        </section>
+      )}
+
       <nav className="aac-context-bar" aria-label="Contexto da comunicação">
         {AAC_CONTEXTS.map((context) => (
           <button
@@ -901,7 +1057,8 @@ function AACScreen({ onBack }) {
             aria-pressed={contexto === context.id}
             onClick={() => {
               setContexto(context.id);
-              setCategoriaSelecionada("quem");
+              setCategoriaSelecionada(nivel === 1 ? "necessidades" : "quem");
+              setSymbolSearch("");
               limparTudo();
             }}
           >
@@ -914,11 +1071,12 @@ function AACScreen({ onBack }) {
       </nav>
 
       <section className="aac-atalhos-bar" aria-label="Frases rápidas">
+        <span className="aac-strip-label">Frases do contexto</span>
         {atalhosDoContexto.map((shortcut) => (
           <button
             key={shortcut.id}
             className="aac-atalho-card"
-            onClick={() => falar(shortcut.fala)}
+            onClick={() => falar(shortcut.fala, "context_shortcut")}
           >
             <span className="aac-atalho-emoji" aria-hidden="true">
               {shortcut.emoji}
@@ -930,17 +1088,18 @@ function AACScreen({ onBack }) {
 
       {/* Seletor de Nível */}
       <div className="aac-level-bar">
-        <span className="aac-level-label">Nível:</span>
+        <span className="aac-level-label">Construção da mensagem:</span>
         <button
           className={`aac-level-btn ${nivel === 1 ? "active" : ""}`}
           aria-label="Nível 1: símbolo único"
           aria-pressed={nivel === 1}
           onClick={() => {
             setNivel(1);
+            setCategoriaSelecionada("necessidades");
             limparTudo();
           }}
         >
-          1
+          1 toque
         </button>
         <button
           className={`aac-level-btn ${nivel === 2 ? "active" : ""}`}
@@ -948,10 +1107,11 @@ function AACScreen({ onBack }) {
           aria-pressed={nivel === 2}
           onClick={() => {
             setNivel(2);
+            setCategoriaSelecionada("quem");
             limparTudo();
           }}
         >
-          2
+          2 partes
         </button>
         <button
           className={`aac-level-btn ${nivel === 3 ? "active" : ""}`}
@@ -959,10 +1119,11 @@ function AACScreen({ onBack }) {
           aria-pressed={nivel === 3}
           onClick={() => {
             setNivel(3);
+            setCategoriaSelecionada("quem");
             limparTudo();
           }}
         >
-          3
+          Frase
         </button>
       </div>
 
@@ -1021,7 +1182,17 @@ function AACScreen({ onBack }) {
       )}
 
       {/* Abas de categorias */}
-      <div className="aac-categories-bar">
+      <label className="aac-symbol-search">
+        <span>Buscar palavra</span>
+        <input
+          type="search"
+          value={symbolSearch}
+          placeholder="Ex.: água, brincar, medo"
+          onChange={(event) => setSymbolSearch(event.target.value)}
+        />
+      </label>
+
+      <div className="aac-categories-bar" aria-label="Categorias de palavras">
         {AAC_CATEGORIES.map((cat) => (
           <button
             key={cat.id}
@@ -1038,7 +1209,7 @@ function AACScreen({ onBack }) {
       </div>
 
       {/* Grid de símbolos */}
-      <main className="aac-symbols-grid">
+      <main className={`aac-symbols-grid aac-symbols-grid-${symbolSize}`}>
         {simbolosDaCategoria.map((simbolo) => (
           <button
             key={simbolo.id}
@@ -1053,6 +1224,9 @@ function AACScreen({ onBack }) {
             <span className="aac-symbol-label">{simbolo.texto}</span>
           </button>
         ))}
+        {simbolosDaCategoria.length === 0 && (
+          <p className="aac-no-symbols">Nenhuma palavra encontrada nesta categoria.</p>
+        )}
       </main>
     </div>
   );

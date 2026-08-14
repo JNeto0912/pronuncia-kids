@@ -7,7 +7,9 @@ import { PHONOLOGICAL_PROCESSES } from "../src/data/phonologicalProcesses.js";
 import {
   AAC_ATALHOS,
   AAC_CATEGORIES,
+  AAC_CORE_MESSAGES,
   AAC_CONTEXTS,
+  AAC_ROUTINE_ITEMS,
   AAC_SLOTS,
   AAC_SYMBOLS,
 } from "../src/data/symbols.js";
@@ -67,6 +69,12 @@ test("dados de comunicação alternativa são internamente consistentes", () => 
 
   assertUniqueIds(AAC_SYMBOLS, "AAC_SYMBOLS");
   assertUniqueIds(AAC_ATALHOS, "AAC_ATALHOS");
+  assertUniqueIds(AAC_CORE_MESSAGES, "AAC_CORE_MESSAGES");
+  assertUniqueIds(AAC_ROUTINE_ITEMS, "AAC_ROUTINE_ITEMS");
+
+  for (const message of AAC_CORE_MESSAGES) {
+    assert.ok(message.label && message.fala && message.intent, `Mensagem essencial incompleta em ${message.id}`);
+  }
 
   for (const symbol of AAC_SYMBOLS) {
     assert.ok(categoryIds.has(symbol.categoria), `Categoria inválida em ${symbol.id}`);
